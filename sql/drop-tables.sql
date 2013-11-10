@@ -1,0 +1,5 @@
+DROP TABLE Taulu;
+DROP TABLE Asetelma;
+DROP TABLE Kayttaja;
+DROP TABLE Sarake;
+DROP TABLE Oikeudet;
