@@ -3,17 +3,34 @@
 ini_set('display_errors',1); 
 error_reporting(E_ALL);
 
+require_once("db.php");
+
 class Xml{
 
+	private $db;
 	public $xml_parsed_browse;
+	public $xml_parsed_insert;
+
+	function init_db(){
+		$this->db=new Database;
+		$this->db->db_set_name("tietokanta");
+		$this->db->db_create_connection("sovellus", "ietokantawi0Bieyo");
+	}
 
 	function xml_parse_browse($xmlstr){
 		$this->xml_parsed_browse=new SimpleXMLElement($xmlstr);
 	}
 
+	function xml_parse_insert($xmlstr){
+		$this->xml_parsed_insert=new SimpleXMLElement($xmlstr);
+	}
+
+
 	function xml_validate(){
 
 	}
+
+///ARKISTO///
 
 	function xml_text_string($text){
 		$ret="";
@@ -106,7 +123,7 @@ class Xml{
 		foreach ($this->xml_parsed_browse->visuals->section as $div) {
 			$div_style = $div['style'];
 
-			$browse_html="<div style='".$div_style."'";
+			$browse_html="<div style='".$div_style."'>";
    			$browse_html = $browse_html."".$this->xml_create_text_element_browse($div);
 			$browse_html = $browse_html."".$this->xml_create_image_element_browse($div);
 			$browse_html = $browse_html."".$this->xml_create_table_element_browse($div);
@@ -118,6 +135,104 @@ class Xml{
 	function print_divs_browse(){
 		$browse_html = $this->xml_create_div_element_browse();
 		return $browse_html;
+	}
+
+
+///////////
+///////////
+///////////
+
+	function xml_create_area_element($div, $i){
+		$html="";		
+
+		foreach ($div->area as $area) {
+			$area_style = $area['style'];
+			$html=$html."<textarea data-insid='".$i."' class='insert_entry_".$area['column']."' type='text' style='".$area_style."'></textarea>";	
+			
+		}
+
+		return $html;
+	}
+
+	function xml_create_entry_element($div, $i){
+		$html="";		
+
+		foreach ($div->entry as $entry) {
+			$entry_style = $entry['style'];
+			$html=$html."<input data-insid='".$i."' class='insert_entry_".$entry['column']."' type='text' style='".$entry_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+
+	function xml_create_ok_element($div, $i,$to){
+		$html="";		
+
+		foreach ($div->ok as $ok) {
+			$ok_style = $ok['style'];
+			$html=$html."<input data-table='".$to."' onclick='insert_data_to_database(this,".$i.")' data-insid='".$i."' class='insert_button' value='".$ok."' type='button' style='".$ok_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+
+	function xml_create_delete_element($div, $i,$to){
+		$html="";		
+
+		foreach ($div->delete as $delete) {
+			$delete_style = $delete['style'];
+			$html=$html."<input data-table='".$to."' onclick='delete_data_from_database(this,".$i.")' data-insid='".$i."' class='insert_button' value='".$delete."' type='button' style='".$delete_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+
+
+	function xml_create_div_element_insert($table, $i){
+		$insert_html="";
+		foreach ($table->section as $div) {
+			$div_style = $div['style'];
+
+			$insert_html="<div style='".$div_style."'>";
+   			$insert_html = $insert_html."".$this->xml_create_text_element_browse($div);
+			$insert_html = $insert_html."".$this->xml_create_image_element_browse($div);
+			$insert_html = $insert_html."".$this->xml_create_table_element_browse($div);
+			$insert_html = $insert_html."".$this->xml_create_entry_element($div, $i);
+			$insert_html = $insert_html."".$this->xml_create_area_element($div, $i);
+			$insert_html = $insert_html."".$this->xml_create_ok_element($div, $i, $table['to']);
+			$insert_html = $insert_html."".$this->xml_create_delete_element($div, $i, $table['to']);
+			$insert_html = $insert_html."</div>";
+		}	
+		return $insert_html;	
+	}
+
+	function xml_create_tables($row){
+		$arr;
+		$i=0;
+		foreach ($this->xml_parsed_insert->table as $table) {
+			$insert_html="<div class='insert_layout' id='insert_layout_".$i."'>";
+			$insert_html=$insert_html.$this->xml_create_div_element_insert($table, $i);
+			$insert_html=$insert_html."</div>";
+			$arr[]=$insert_html;
+			$arr[]=$table['name'];
+			if( strlen($table['name']) >0 ){
+			$to="SELECT * FROM ".$table['to'];
+				$arr[]=$this->db->db_get_row($row, $to);
+			}
+			else{
+				$arr[]="";
+			}
+			$i++;
+		}
+		return $arr;
+	}
+
+	function print_divs_insert($row){
+		$arr = $this->xml_create_tables($row);
+		return $arr;
 	}
 
 }

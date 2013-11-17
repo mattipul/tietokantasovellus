@@ -15,7 +15,7 @@ class Table{
 	}
 
 	function table_set_name($name){
-		$this->name=$name;
+		$this->table_name=$name;
 	}
 
 	function table_get_name(){
@@ -31,7 +31,7 @@ class Table{
 	}
 
 	function table_set_columns($columns){
-		$this->table_columns=columns;
+		$this->table_columns=$columns;
 	}
 
 	function table_add_column($column, $type){

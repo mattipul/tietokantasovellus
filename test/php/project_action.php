@@ -89,6 +89,10 @@ class Project_action{
 		}
 		
 	}
+	
+	function get_table_list(){
+		return $this->db->db_get_tables();
+	}
 }
 
 

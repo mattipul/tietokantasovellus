@@ -113,11 +113,34 @@ class Handle_post{
 		$login->login_init();
 		$auth=$login->login_authorize($user, $pass);
 		
-		if( $auth == 1 ){
+		if( $auth['auth'] == 1 ){
 			echo '1';
+			$login->login_session_start( $auth['id'] );
 		}else{
 			echo '0';
 		}
+	}
+	
+	function post_handle_logout(){
+		$login=new Login;
+		$login->login_session_destroy();
+	}
+	
+	function post_handle_get_tablelist(){
+		$action = new Project_action;
+		$action->init();
+		$table_list=$action->get_table_list();
+		$ret_str;
+		$c=0;
+		for($i=0; $i<count($table_list); $i++){
+			if($table_list[$i]!=NULL){
+				$ret_str[$c]['table_name']=$table_list[$i]->table_name;
+				$ret_str[$c]['columns']=$table_list[$i]->table_columns;
+				$c++;
+			}
+		}
+		
+		echo json_encode($ret_str);
 	}
 
 	function post_handle_post(){
@@ -183,6 +206,14 @@ class Handle_post{
 				$user=$_POST['user'];
 				$pass=$_POST['pass'];
 				$this->post_handle_authorize($user, $pass);
+			}
+			
+			if( $type == 9 ){
+				$this->post_handle_logout();
+			}
+			
+			if( $type == 10 ){
+				$this->post_handle_get_tablelist();
 			}
 	}
 

@@ -286,8 +286,28 @@ function delete_data_from_database(painike, insid){
 	});
 }
 
+function sign_out(){
+	$.post( "php/handle_post.php", { type:9 })
+	.done(function(data ) {
+			window.location="login.php";
+	});
+}
 
-
+function get_table_list(){
+	$("#taulujen_nimet").html("");
+	$.post( "php/handle_post.php", { type:10 })
+	.done(function(data ) {
+			var tables = jQuery.parseJSON( data );
+			for(var i=0; i<tables.length; i++){
+				if(tables[i] !== undefined){
+					$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option value='"+tables[i].table_name+"'>"+tables[i].table_name+"</option>" );
+					for(var j=0; j<tables[i].columns.length; j++){
+						$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option style='color:rgb(100,100,150)' value='"+tables[i].columns[j].sarakkeen_nimi+"'>-"+tables[i].columns[j].sarakkeen_nimi+":"+tables[i].columns[j].sarakkeen_tyyppi+"</option>" );
+					}
+				}
+			}
+	});
+}
 
 
 

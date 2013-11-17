@@ -3,7 +3,9 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 require_once('db.php');
 require_once('xml.php');
+require_once("table.php");
 require_once('layout.php');
+require_once("row.php");
 
 class Project_action{
 
@@ -31,7 +33,9 @@ class Project_action{
 		$layout=(object)$layout_ret;
 	
 		$this->xml->xml_parse_browse($layout->xml_browse);
-		$html = array('browse_html' => $this->xml->print_divs_browse(), 'insert_html' => "");
+		$this->xml->init_db();
+		$this->xml->xml_parse_insert($layout->xml_insert);
+		$html = array('browse_html' => $this->xml->print_divs_browse(), 'insert_html' => $this->xml->print_divs_insert($row));
 		return $html;
 	}
 
@@ -60,6 +64,35 @@ class Project_action{
 		return $this->db->db_create_table($table);
 	}
 	
+	function set_row($row,$table_str){
+		$table=new Table;
+		$table->table_name=$table_str;
+		$row_count = $this->db->db_count_rows($table);
+		//echo $row_count." ".$row->count;
+		if($row_count<$row->count)
+		{
+			$this->db->db_insert_to_database($table, $row);
+		}
+		else
+		{
+			$this->db->db_update_row($table, $row);
+		}
+	}
+
+	function delete_row($row,$table_str){
+		$table=new Table;
+		$table->table_name=$table_str;
+		$row_count = $this->db->db_count_rows($table);
+		if($row_count>=$row->count)
+		{
+			$this->db->db_delete_row($table, $row);
+		}
+		
+	}
+	
+	function get_table_list(){
+		return $this->db->db_get_tables();
+	}
 }
 
 

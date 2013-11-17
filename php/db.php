@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 
 require_once("layout.php");
 require_once("table.php");
+require_once("row.php");
 
 class Database{
 	
@@ -89,6 +90,12 @@ class Database{
 
 		
 	}
+	
+	function db_get_table_columns($id){
+		$ret_object = $this->db_select("SELECT * FROM Sarake WHERE taulun_id=".$id);
+		return $ret_object;
+	}
+	
 
 	function db_get_tables(){
 		$ret_object = $this->db_select("SELECT * FROM Taulu");
@@ -98,8 +105,8 @@ class Database{
 		foreach ($ret_object as $tables_row)
     		{
           		$table_id = $tables_row['taulun_id'];
-			$table_name = $tabless_row['taulun_nimi'];
-			$table_columns = "";
+			$table_name = $tables_row['taulun_nimi'];
+			$table_columns = $this->db_get_table_columns($table_id);
 
 			$table_new = new Table;
 			$table_new->table_create_table($table_id, $table_name, $table_columns);
@@ -164,12 +171,75 @@ class Database{
 	}
 
 	function db_get_row($row, $sql){
-		$sqlstatement=$sql." LIMIT ".($row-1).",1";
+		$sqlstatement=$sql." ORDER BY id ASC LIMIT ".($row-1).",1";
 		$sqlstatement_escaped=$this->db_escape($sqlstatement);
-		
 		$ret_object = $this->db_select($sqlstatement_escaped);
 		
 		return $ret_object;	
+	}
+
+	function db_count_rows($table){
+		$table_name = $table->table_name;
+		$ret_object=$this->db_select( $this->db_escape("SELECT COUNT(*) FROM ".$table_name."") );
+		return $ret_object[0][0];
+	}
+
+
+	function db_insert_to_database($table, $row){
+		$table_name = $table->table_name;
+		$this->db_exec( $this->db_escape("INSERT INTO ".$table_name." (id) VALUES (NULL)") );
+
+		$ret_object = $this->db_select($this->db_escape("SELECT id FROM ".$table_name." ORDER BY id DESC LIMIT 1"));
+		$new_row_id=$ret_object[0]['id'];
+
+		$update_str="UPDATE ".$table_name." SET ";
+		for($i=0; $i<count($row->row_keys); $i++){
+			$update_str=$update_str.$row->row_keys[$i]."='".$row->row_data[$i]."' ";
+			if( $i < count( $row->row_keys )-1 ){
+				$update_str=$update_str.",";
+			}
+		}
+		$update_str=$update_str." WHERE id=".$new_row_id;
+		//echo $update_str;
+		$this->db_exec( $this->db_escape( $update_str ) );
+	}
+
+	
+	function db_update_row($table, $row){
+		$table_name = $table->table_name;
+		$ret_object = $this->db_select($this->db_escape("SELECT id FROM ".$table_name." ORDER BY id ASC LIMIT ".($row->count-1).",1"));
+		$update_row_id=$ret_object[0]['id'];
+
+		$update_str="UPDATE ".$table_name." SET ";
+		for($i=0; $i<count($row->row_keys); $i++){
+			$update_str=$update_str.$row->row_keys[$i]."='".$row->row_data[$i]."' ";
+			if( $i < count( $row->row_keys )-1 ){
+				$update_str=$update_str.",";
+			}
+		}
+		$update_str=$update_str." WHERE id=".$update_row_id;
+		//echo $update_str;
+		$this->db_exec( $this->db_escape( $update_str ) );
+	}
+
+	function db_delete_row($table, $row){
+		$table_name = $table->table_name;
+		$ret_object = $this->db_select($this->db_escape("SELECT id FROM ".$table_name." ORDER BY id LIMIT ".($row->count-1).",1"));
+		$delete_row_id=$ret_object[0]['id'];
+		echo $delete_row_id;
+		$this->db_exec( $this->db_escape("DELETE FROM ".$table_name." WHERE id=".$delete_row_id) );	
+	}
+	
+	function db_get_user($user){
+		$usr=$user->username;
+		$ret_object=$this->db_select( "SELECT * FROM Kayttaja WHERE kayttajanimi='".$usr."'" );
+		return $ret_object;
+	}
+	
+	function db_get_user_priviledges($user){
+		$usr=$user->username;
+		$ret_object=$this->db_select( "SELECT * FROM Kayttaja JOIN Oikeudet ON Kayttaja.kayttaja_id=Oikeudet.kayttaja_id WHERE kayttajanimi='".$usr."'" );
+		return $ret_object;
 	}
 
 }

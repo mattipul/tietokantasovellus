@@ -90,6 +90,12 @@ class Database{
 
 		
 	}
+	
+	function db_get_table_columns($id){
+		$ret_object = $this->db_select("SELECT * FROM Sarake WHERE taulun_id=".$id);
+		return $ret_object;
+	}
+	
 
 	function db_get_tables(){
 		$ret_object = $this->db_select("SELECT * FROM Taulu");
@@ -99,8 +105,8 @@ class Database{
 		foreach ($ret_object as $tables_row)
     		{
           		$table_id = $tables_row['taulun_id'];
-			$table_name = $tabless_row['taulun_nimi'];
-			$table_columns = "";
+			$table_name = $tables_row['taulun_nimi'];
+			$table_columns = $this->db_get_table_columns($table_id);
 
 			$table_new = new Table;
 			$table_new->table_create_table($table_id, $table_name, $table_columns);
@@ -227,7 +233,7 @@ class Database{
 	function db_get_user($user){
 		$usr=$user->username;
 		$ret_object=$this->db_select( "SELECT * FROM Kayttaja WHERE kayttajanimi='".$usr."'" );
-		return $ret_object[0];
+		return $ret_object;
 	}
 	
 	function db_get_user_priviledges($user){

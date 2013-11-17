@@ -36,7 +36,6 @@ class Project{
 
 				<div id="yllapito'.$i.'" class="yllapito">
 				</div>
-
 				<div id="arkisto'.$i.'" class="arkisto">
 				</div>
 			</div>';

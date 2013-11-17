@@ -5,6 +5,8 @@ error_reporting(E_ALL);
 
 require_once("project_action.php");
 require_once("layout.php");
+require_once("row.php");
+require_once("login.php");
 
 class Handle_post{
 	
@@ -75,6 +77,72 @@ class Handle_post{
 		$action->create_table($table);		
 	}
 
+	function post_handle_insert($data_keys, $data_data, $data_lengths, $table, $row_c){
+		$action = new Project_action;
+		$action->init();
+		$data_keys_arr=explode(",", $data_keys);
+		$data_lengths_arr=explode(",", $data_lengths);
+		$data_data_arr;
+	
+		$c=0;
+		for($i=0; $i<count($data_lengths_arr); $i++){
+			$data_data_arr[]=substr($data_data, $c, $data_lengths_arr[$i]);
+			$c=$data_lengths_arr[$i]+1;
+		}
+
+		$row=new Row;
+		$row->set_keys($data_keys_arr);
+		$row->set_data($data_data_arr);	
+		$row->count=$row_c;
+
+		$action->set_row($row,$table);
+
+	}
+
+	function post_handle_delete($table, $row){
+		$action = new Project_action;
+		$action->init();
+
+		$rowObj=new Row;
+		$rowObj->count=$row;
+		$action->delete_row($rowObj, $table);
+	}
+	
+	function post_handle_authorize($user, $pass){
+		$login=new Login;
+		$login->login_init();
+		$auth=$login->login_authorize($user, $pass);
+		
+		if( $auth['auth'] == 1 ){
+			echo '1';
+			$login->login_session_start( $auth['id'] );
+		}else{
+			echo '0';
+		}
+	}
+	
+	function post_handle_logout(){
+		$login=new Login;
+		$login->login_session_destroy();
+	}
+	
+	function post_handle_get_tablelist(){
+		$action = new Project_action;
+		$action->init();
+		$table_list=$action->get_table_list();
+		$ret_str;
+		$c=0;
+		for($i=0; $i<count($table_list); $i++){
+			if($table_list[$i]!=NULL){
+				$ret_str[$c]['table_name']=$table_list[$i]->table_name;
+				$ret_str[$c]['columns']=$table_list[$i]->table_columns;
+				$c++;
+			}
+		}
+		
+		echo json_encode($ret_str);
+	}
+
 	function post_handle_post(){
 			$type = $_POST['type'];
 
@@ -117,6 +185,35 @@ class Handle_post{
 				$table_columns = $_POST['table_columns'];
 				$columns = explode(",", $table_columns);
 				$this->post_handle_create_table($table_name, $columns);
+			}
+			
+			if( $type == 6 ){
+				$data_keys=$_POST['data_keys'];
+				$data_data=$_POST['data_data'];
+				$data_lengths=$_POST['data_lengths'];
+				$table=$_POST['table'];
+				$row=$_POST['row'];
+				$this->post_handle_insert($data_keys, $data_data, $data_lengths, $table, $row);
+			}
+
+			if( $type == 7 ){
+				$table=$_POST['table'];
+				$row=$_POST['row'];
+				$this->post_handle_delete($table, $row);
+			}
+			
+			if( $type == 8 ){
+				$user=$_POST['user'];
+				$pass=$_POST['pass'];
+				$this->post_handle_authorize($user, $pass);
+			}
+			
+			if( $type == 9 ){
+				$this->post_handle_logout();
+			}
+			
+			if( $type == 10 ){
+				$this->post_handle_get_tablelist();
 			}
 	}
 

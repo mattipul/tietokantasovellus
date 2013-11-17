@@ -2,14 +2,16 @@
 
 class Row{
 
-	public $row;
+	public $row_keys;
+	public $row_data;
+	public $count;
 
-	function row_set_row($row){
-		$this->row=$row;
+	function set_keys($keys){
+		$this->row_keys=$keys;
 	}
 
-	function row_get_row($row){
-		return $this->$row;
+	function set_data($data){
+		$this->row_data=$data;
 	}
 
 }
