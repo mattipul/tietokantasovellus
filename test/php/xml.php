@@ -208,6 +208,61 @@ class Xml{
 		}	
 		return $insert_html;	
 	}
+	
+	function xml_create_searchentry($div, $id){
+		$html="";		
+
+		foreach ($div->searchentry as $search_entry) {
+			$search_entry_style = $search_entry['style'];
+			$html=$html."<input data-searchidentifier='".$id."' class='insert_entry_".$search_entry['column']."' type='text' style='".$search_entry_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+
+	function xml_create_searchok($div, $id){
+		$html="";		
+
+		foreach ($div->searchok as $search_ok) {
+			$search_ok_style = $search_ok['style'];
+			$html=$html."<input data-searchidentifier='".$id."' class='insert_button' value='".$search_ok."' type='button' style='".$search_ok_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+	
+	function xml_create_search_section($table, $i){
+		$insert_html="";
+		foreach ($table->searchsection as $search_section) {
+			$search_section_style = $search_section['style'];
+			$search_section_id = $search_section['identifier'];
+			
+			$insert_html="<div style='".$search_section_style."'>";
+   			$insert_html = $insert_html."".$this->xml_create_searchentry($search_section,$search_section_id);
+			$insert_html = $insert_html."".$this->xml_create_searchok($search_section,$search_section_id);
+			$insert_html = $insert_html."</div>";
+		}	
+		return $insert_html;		
+	}
+	
+	function xml_create_search_results_result($search_results, $id){
+		return "<div data-searchresults='on' data-searchidentifier='".$id."' style='".$search_results['style']."'></div>";
+	}
+	
+	function xml_create_search_results($table, $i){
+		$insert_html="";
+		foreach ($table->searchresult as $search_results) {
+			$search_results_style = $search_results['style'];
+			$search_results_id = $search_results['identifier'];
+			
+			$insert_html="<div style='".$search_results_style."'>";
+   			$insert_html = $insert_html."".$this->xml_create_search_results_result($search_results, $search_results_id);
+			$insert_html = $insert_html."</div>";
+		}	
+		return $insert_html;		
+	}
 
 	function xml_create_tables($row){
 		$arr;
@@ -215,6 +270,8 @@ class Xml{
 		foreach ($this->xml_parsed_insert->table as $table) {
 			$insert_html="<div class='insert_layout' id='insert_layout_".$i."'>";
 			$insert_html=$insert_html.$this->xml_create_div_element_insert($table, $i);
+			$insert_html=$insert_html.$this->xml_create_search_section($table, $i);
+			$insert_html=$insert_html.$this->xml_create_search_results($table, $i);
 			$insert_html=$insert_html."</div>";
 			$arr[]=$insert_html;
 			$arr[]=$table['name'];

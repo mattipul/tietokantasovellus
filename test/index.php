@@ -78,7 +78,7 @@ $project->project_create_project();
 			    <li><a data-toggle="modal" data-target="#uusi_taulu" class="sis" href="#">Uusi taulu</a></li>
 			    <li><a data-toggle="modal" data-target="#uusi_asetelma" class="sis" href="#">Uusi asetelma</a></li>
 			    <hr/>
-			    <li><a data-toggle="modal" onclick="get_table_list();" data-target="#hallitse" class="sis" href="#">Hallitse tauluja ja asetelmia</a></li>
+			    <li><a data-toggle="modal" onclick="get_table_list();get_layout_list();" data-target="#hallitse" class="sis" href="#">Hallitse tauluja ja asetelmia</a></li>
 			    <hr/>
 			  </ul>
 			</li>
@@ -241,15 +241,24 @@ $project->project_create_project();
 					</div>
 					<div style="width:35%;float:right;text-align:right;">
 						<a data-toggle="modal" data-target="#uusi_sarake" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Lisää sarake</a>
-						<a data-toggle="modal" data-target="#muuta_taulun_nimi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Muuta taulun nimeä</a>
-						<a data-toggle="modal" data-target="#muuta_sarakkeen_nimi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Muuta sarakkeen nimeä</a>
-						<a data-toggle="modal" data-target="#muuta_sarakkeen_tyyppi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Muuta sarakkeen tyyppiä</a>
+						<a data-toggle="modal" data-target="#muuta_taulun_nimi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Taulun nimi</a>
+						<a data-toggle="modal" data-target="#muuta_sarakkeen_nimi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Sarakkeen nimi/tyyppi</a>
 						<a data-toggle="modal" data-target="#poista_sarake" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Poista sarake</a>
 						<a data-toggle="modal" data-target="#poista_taulu" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Poista taulu</a>
 					</div>
 					<div style="clear:both"></div>
 				  </div>
 				  <div class="tab-pane" id="hallitse_asetelma">
+				    <div style="width:65%;float:left">
+						<select id="asetelmien_nimet" style="padding:5px;width:100%; height:300px;" size="100">
+						</select>
+					</div>
+					<div style="width:35%;float:right;text-align:right;">
+						<a data-toggle="modal" data-target="#muuta_asetelman_nimi" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Nimi</a>
+						<a data-toggle="modal" data-target="#muuta_asetelman_sqllauseke" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> SQL-lauseke</a>
+						<a data-toggle="modal" data-target="#poista_asetelma" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Poista asetelma</a>
+					</div>
+					<div style="clear:both"></div>
 				  </div>
 				</div>
 	      </div>
@@ -279,15 +288,15 @@ $project->project_create_project();
 	      <div class="modal-body">
 		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
 		<span>Sarakkeen nimi:</span>
-		<input class="uusi_sarakkeen_nimi" style="width:55%" type="text" />
-		<select class="uusi_sarakkeen_tyyppi">
+		<input id="uusi_sarakkeen_nimi" style="width:55%" type="text" />
+		<select id="uusi_sarakkeen_tyyppi">
 		<option value="-1">Tyyppi</option><option value="TEXT">TEXT</option><option value="INT">INT</option><option value="DATE">DATE</option><option value="DOUBLE">DOUBLE</option>
 		</select>
 		</div>
 	      </div>
 	      <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Lisää sarake</button>
+		<button type="button" class="btn btn-primary" onclick="add_column();">Lisää sarake</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->
@@ -297,7 +306,7 @@ $project->project_create_project();
 	<!------------------>
 	<!------------------>
 	
-			<div id="muuta_taulun_nimi" class="modal fade">
+	<div id="muuta_taulun_nimi" class="modal fade">
 	  <div class="modal-dialog">
 	    <div class="modal-content">
 	      <div class="modal-header">
@@ -307,12 +316,12 @@ $project->project_create_project();
 	      <div class="modal-body">
 		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
 		<span>Taulun nimi:</span>
-		<input class="uusi_taulun_nimi" style="width:70%" type="text" />
+		<input id="uusi_taulun_nimi" style="width:70%" type="text" />
 		</div>
 	      </div>
 	      <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Muuta</button>
+		<button type="button" class="btn btn-primary" onclick="change_table_name();">Muuta</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->
@@ -327,53 +336,29 @@ $project->project_create_project();
 	    <div class="modal-content">
 	      <div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h4 class="modal-title">Muuta sarakkeen nimeä</h4>
+		<h4 class="modal-title">Muuta sarakkeen nimeä ja tyyppiä</h4>
 	      </div>
 	      <div class="modal-body">
 		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
-		<select>
-		<option>Sarake</option>
-		</select>
 		<span>Sarakkeen nimi:</span>
-		<input class="uusi_taulun_nimi" style="width:50%" type="text" />
-		</div>
-	      </div>
-	      <div class="modal-footer">
-		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Muuta</button>
-	      </div>
-	    </div><!-- /.modal-content -->
-	  </div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->
-	
-	<!------------------>
-	<!------------------>
-	<!------------------>
-	
-	<div id="muuta_sarakkeen_tyyppi" class="modal fade">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h4 class="modal-title">Muuta sarakkeen tyyppiä</h4>
-	      </div>
-	      <div class="modal-body">
-		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
-				<select>
-		<option>Sarake</option>
-		</select>
-		<select class="muuta_sarakkeen_tyyppi">
+		<input id="uusi_sarakkeen_nimi_muuta" style="width:50%" type="text" />
+		<select id="muuta_sarakkeen_tyyppi">
 		<option value="-1">Tyyppi</option><option value="TEXT">TEXT</option><option value="INT">INT</option><option value="DATE">DATE</option><option value="DOUBLE">DOUBLE</option>
 		</select>
 		</div>
 	      </div>
 	      <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Muuta</button>
+		<button type="button" class="btn btn-primary" onclick="change_column_name();">Muuta</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
+	
+	<!------------------>
+	<!------------------>
+	<!------------------>
+	
 	
 	
 		<!------------------>
@@ -385,14 +370,14 @@ $project->project_create_project();
 	    <div class="modal-content">
 	      <div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		<h4 class="modal-title">Valitse poistettava sarake</h4>
+		<h4 class="modal-title">Poistetaanko sarake?</h4>
 	      </div>
 	      <div class="modal-body">
-
+			<p>Tämä on peruuttamaton toimenpide</p>
 	      </div>
 	      <div class="modal-footer">
-		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Poista</button>
+		<button type="button" class="btn btn-default" data-dismiss="modal">Ei</button>
+		<button type="button" class="btn btn-primary" onclick="destroy_column()">Kyllä</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->
@@ -415,7 +400,79 @@ $project->project_create_project();
 	      </div>
 	      <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">Ei</button>
-		<button type="button" class="btn btn-primary" onclick="create_new_layout()">Kyllä</button>
+		<button type="button" class="btn btn-primary" onclick="destroy_table()">Kyllä</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="muuta_asetelman_nimi" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Muuta asetelman nimeä</h4>
+	      </div>
+	      <div class="modal-body">
+		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
+		<span>Asetelman nimi:</span>
+		<input id="uusi_asetelman_nimi" style="width:70%" type="text" />
+		</div>		
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
+		<button type="button" class="btn btn-primary" onclick="change_layout_name()">Muuta nimi</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="muuta_asetelman_sqllauseke" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Muuta asetelman SQL-lauseketta</h4>
+	      </div>
+	      <div class="modal-body">
+		<div style="background-color:rgb(240,240,240);padding:5px;width:100%">
+		<span>SQL-lauseke:</span>
+		<input id="uusi_sqllauseke" style="width:70%" type="text" />
+		</div>		
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
+		<button type="button" class="btn btn-primary" onclick="change_layout_sql()">Muuta SQL-lauseke</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="poista_asetelma" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Poistetaanko asetelma?</h4>
+	      </div>
+	      <div class="modal-body">
+			<p>Tämä on peruuttamaton toimenpide</p>
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Ei</button>
+		<button type="button" class="btn btn-primary" onclick="destroy_layout()">Kyllä</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->

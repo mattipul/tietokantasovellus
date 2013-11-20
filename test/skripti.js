@@ -297,17 +297,124 @@ function get_table_list(){
 	$("#taulujen_nimet").html("");
 	$.post( "php/handle_post.php", { type:10 })
 	.done(function(data ) {
+			
 			var tables = jQuery.parseJSON( data );
 			for(var i=0; i<tables.length; i++){
 				if(tables[i] !== undefined){
-					$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option value='"+tables[i].table_name+"'>"+tables[i].table_name+"</option>" );
+					$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option data-listtype='table' value='"+tables[i].table_name+"'>"+tables[i].table_name+"</option>" );
 					for(var j=0; j<tables[i].columns.length; j++){
-						$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option style='color:rgb(100,100,150)' value='"+tables[i].columns[j].sarakkeen_nimi+"'>-"+tables[i].columns[j].sarakkeen_nimi+":"+tables[i].columns[j].sarakkeen_tyyppi+"</option>" );
+						$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option data-listtype='column' data-table='"+tables[i].table_name+"' style='color:rgb(100,100,150)' value='"+tables[i].columns[j].sarakkeen_nimi+"'>-"+tables[i].columns[j].sarakkeen_nimi+":"+tables[i].columns[j].sarakkeen_tyyppi+"</option>" );
 					}
 				}
 			}
 	});
 }
 
+function column_list(id,table_name){
+		$.post( "php/handle_post.php", { type:11, table:table_name})
+		.done(function(data ) {
+			alert(data);
+			var columns = jQuery.parseJSON( data );
+			for(var i=0; i<columns.length; i++){			
+				$(id).html($(id).html()+"<option>"+columns[i]+"</option>");
+			}
+		});	
+}
+
+function add_column(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		var column_name=$("#uusi_sarakkeen_nimi").val();
+		var column_type=$("#uusi_sarakkeen_tyyppi").val();
+		$.post( "php/handle_post.php", { type:12, table:table_name, column_name:column_name,column_type:column_type })
+		.done(function(data ) {
+			alert(data);
+		});
+	}
+}
+
+function change_table_name(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		var new_table_name=$("#uusi_taulun_nimi").val();
+		$.post( "php/handle_post.php", { type:13, table:table_name, new_table_name:new_table_name })
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function change_column_name(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "column" ){
+		var column_name=$("#taulujen_nimet").val();
+		var new_column_name=$("#uusi_sarakkeen_nimi_muuta").val();
+		var table_name=$("#taulujen_nimet option:selected").data("table");
+		var new_column_type=$("#muuta_sarakkeen_tyyppi").val();
+		$.post( "php/handle_post.php", { type:14, table:table_name, column_name:column_name, new_column_name:new_column_name, new_column_type:new_column_type })
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function destroy_column(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "column" ){
+		var column_name=$("#taulujen_nimet").val();
+		var table_name=$("#taulujen_nimet option:selected").data("table");
+		$.post( "php/handle_post.php", { type:15, table:table_name, column_name:column_name})
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function destroy_table(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		$.post( "php/handle_post.php", { type:16, table:table_name})
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function get_layout_list(){
+	$("#asetelmien_nimet").html("");
+	$.post( "php/handle_post.php", { type:17 })
+	.done(function(data ) {
+			var layouts = jQuery.parseJSON( data );
+			for(var i=0; i<layouts.length; i++){
+				if(layouts[i] !== undefined){
+					$("#asetelmien_nimet").html( $("#asetelmien_nimet").html() + "<option value='"+layouts[i].layout_name+"'>"+layouts[i].layout_name+"("+layouts[i].sql+")</option>" );
+				}
+			}
+	});
+}
 
 
+function change_layout_name(){
+	var new_layout_name=$("#uusi_asetelman_nimi").val();
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:18, layout:layout, new_layout_name:new_layout_name })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+
+function change_layout_sql(){
+	var sql=$("#uusi_sqllauseke").val();
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:19, layout:layout, sql:sql })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+function destroy_layout(){
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:20, layout:layout })
+	.done(function(data ) {
+		alert(data);
+	});
+}

@@ -96,6 +96,10 @@ class Database{
 		return $ret_object;
 	}
 	
+	function db_get_table_columns_by_name($name){
+		$ret_object = $this->db_select("SELECT * FROM Sarake WHERE taulun_nimi=".$name);
+		return $ret_object;
+	}
 
 	function db_get_tables(){
 		$ret_object = $this->db_select("SELECT * FROM Taulu");
@@ -166,7 +170,6 @@ class Database{
 		$layout_xml_insert=$layout->xml_insert;
 		$sqlstatement=$layout->sqlstatement;
 		$this->db_exec( $this->db_escape("UPDATE Asetelma SET asetelman_nimi='".$layout_name."', sqllauseke='".$sqlstatement."', xml_arkisto='".$layout_xml_browse."', xml_yllapito='".$layout_xml_insert."' WHERE asetelman_id='".$layout_id."'") );
-		
 
 	}
 
@@ -240,6 +243,83 @@ class Database{
 		$usr=$user->username;
 		$ret_object=$this->db_select( "SELECT * FROM Kayttaja JOIN Oikeudet ON Kayttaja.kayttaja_id=Oikeudet.kayttaja_id WHERE kayttajanimi='".$usr."'" );
 		return $ret_object;
+	}
+
+	function db_add_column($table_name, $column_name, $column_type){
+
+		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table_name."'");
+		$table_id=$ret_object[0]['taulun_id'];
+
+		//echo "INSERT INTO Sarake (sarakkeen_id, taulun_id, sarakkeen_nimi, sarakkeen_tyyppi) VALUES (NULL, '".$table_id."', '".$column_name."', '".$column_type."')";
+		$this->db_exec("INSERT INTO Sarake (sarakkeen_id, taulun_id, sarakkeen_nimi, sarakkeen_tyyppi) VALUES (NULL, '".$table_id."', '".$column_name."', '".$column_type."')");
+
+		//echo "ALTER TABLE ".$table_name." ADD ".$column_name." ".$column_type." ";
+		$this->db_exec("ALTER TABLE ".$table_name." ADD ".$column_name." ".$column_type." ");
+	}
+
+	function db_change_table_name($table_name, $new_table_name){
+		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table_name."'");
+		$table_id=$ret_object[0]['taulun_id'];
+
+		//echo "UPDATE Taulu SET taulun_nimi='".$new_table_name."' WHERE taulun_id=".$table_id;
+		$this->db_exec("UPDATE Taulu SET taulun_nimi='".$new_table_name."' WHERE taulun_id=".$table_id);
+
+		//echo "ALTER TABLE ".$table_name." RENAME ".$new_table_name.";";
+		$this->db_exec("ALTER TABLE ".$table_name." RENAME ".$new_table_name.";");
+	}
+
+	function db_change_column_name($table_name, $column_name, $new_column_name, $new_column_type){
+		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table_name."'");
+		$table_id=$ret_object[0]['taulun_id'];
+
+		$ret_object = $this->db_select("SELECT sarakkeen_id FROM Sarake WHERE taulun_id='".$table_id."' AND sarakkeen_nimi='".$column_name."'");
+		$column_id=$ret_object[0]['sarakkeen_id'];
+
+		//echo "UPDATE Sarake SET sarakkeen_nimi='".$new_column_name."', sarakkeen_tyypi='".$new_column_type."' WHERE sarakkeen_id=".$column_id;
+		$this->db_exec("UPDATE Sarake SET sarakkeen_nimi='".$new_column_name."', sarakkeen_tyyppi='".$new_column_type."' WHERE sarakkeen_id=".$column_id);
+
+		//echo "ALTER TABLE ".$table_name." CHANGE ".$column_name." ".$new_column_name." ".$new_column_type.";";
+		$this->db_exec("ALTER TABLE ".$table_name." CHANGE ".$column_name." ".$new_column_name." ".$new_column_type.";");
+	}
+
+	function db_destroy_column($table_name, $column_name){
+		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table_name."'");
+		$table_id=$ret_object[0]['taulun_id'];
+
+		$ret_object = $this->db_select("SELECT sarakkeen_id FROM Sarake WHERE taulun_id='".$table_id."' AND sarakkeen_nimi='".$column_name."'");
+		$column_id=$ret_object[0]['sarakkeen_id'];
+
+		//echo "DELETE FROM Sarake WHERE sarakkeen_id=".$column_id;
+		$this->db_exec("DELETE FROM Sarake WHERE sarakkeen_id=".$column_id);
+
+		//echo "ALTER TABLE ".$table_name." DROP COLUMN ".$column_name;
+		$this->db_exec("ALTER TABLE ".$table_name." DROP COLUMN ".$column_name);
+	}
+
+	function db_destroy_table($table_name){
+		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table_name."'");
+		$table_id=$ret_object[0]['taulun_id'];
+
+		//echo "DELETE FROM Taulu WHERE taulun_id=".$table_id;
+		$this->db_exec("DELETE FROM Taulu WHERE taulun_id=".$table_id);
+
+		//echo "DROP TABLE ".$table_name;
+		$this->db_exec("DROP TABLE ".$table_name);
+	}
+
+	function db_change_layout_name($layout_name, $new_layout_name){
+		//echo 'UPDATE Asetelma SET asetelman_nimi="'.$new_layout_name.'" WHERE asetelman_nimi="'.$layout_name.'"';
+		$this->db_exec('UPDATE Asetelma SET asetelman_nimi="'.$new_layout_name.'" WHERE asetelman_nimi="'.$layout_name.'"');
+	}
+
+	function db_change_layout_sql($layout_name, $sql){
+		//echo 'UPDATE Asetelma SET asetelman_nimi="'.$new_layout_name.'" WHERE asetelman_nimi="'.$layout_name.'"';
+		$this->db_exec('UPDATE Asetelma SET sqllauseke="'.$sql.'" WHERE asetelman_nimi="'.$layout_name.'"');
+	}
+
+	function db_destroy_layout($layout_name){
+		//echo "DELETE FROM Asetelma WHERE asetelman_nimi='".$layout_name."'";
+		$this->db_exec("DELETE FROM Asetelma WHERE asetelman_nimi='".$layout_name."'");
 	}
 
 }

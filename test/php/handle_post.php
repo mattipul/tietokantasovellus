@@ -143,6 +143,119 @@ class Handle_post{
 		echo json_encode($ret_str);
 	}
 
+	function post_handle_get_columnlist($table_name){
+		$action = new Project_action;
+		$action->init();
+		$column_list=$action->get_column_list();
+
+		$ret_str;
+		$c=0;
+		for($i=0; $i<count($table_list); $i++){
+			if($table_list[$i]!=NULL){
+				$ret_str[$c]['column_name']=$column_list[$i]['sarakkeen_nimi'];
+				$ret_str[$c]['column_type']=$column_list[$i]['sarakkeen_tyyppi'];
+				$c++;
+			}
+		}
+		
+		echo json_encode($ret_str);
+	}
+
+	function post_handle_add_column($table_name, $column_name, $column_type){
+		$action = new Project_action;
+		$action->init();
+
+		$tableObj=new Table;
+		$tableObj->table_name=$table_name;
+		
+		$action->add_column($tableObj, $column_name, $column_type);
+	}
+
+	function post_handle_change_table_name($table, $new_table_name){
+		$action = new Project_action;
+		$action->init();
+
+		$tableObj=new Table;
+		$tableObj->table_name=$table;
+		
+		$action->change_table_name($tableObj, $new_table_name);
+	}
+
+	function post_handle_change_column_name($table_name, $column_name, $new_column_name, $new_column_type){
+		$action = new Project_action;
+		$action->init();
+
+		$tableObj=new Table;
+		$tableObj->table_name=$table_name;
+		
+		$action->change_column_name($tableObj, $column_name, $new_column_name, $new_column_type);	
+	}
+
+	function post_handle_destroy_column($table_name, $column_name){
+		$action = new Project_action;
+		$action->init();
+
+		$tableObj=new Table;
+		$tableObj->table_name=$table_name;
+		
+		$action->destroy_column($tableObj, $column_name);	
+	}
+
+	function post_handle_destroy_table($table_name){
+		$action = new Project_action;
+		$action->init();
+
+		$tableObj=new Table;
+		$tableObj->table_name=$table_name;
+		
+		$action->destroy_table($tableObj);	
+	}
+
+	function post_handle_get_layoutlist(){
+		$action = new Project_action;
+		$action->init();
+
+		$layout_list=$action->get_layout_list();
+		$ret_str;
+		$c=0;
+		for($i=0; $i<count($layout_list); $i++){
+			if($layout_list[$i]!=NULL){
+				$ret_str[$c]['layout_name']=$layout_list[$i]->name;
+				$ret_str[$c]['sql']=$layout_list[$i]->sqlstatement;
+				$c++;
+			}
+		}
+		
+		echo json_encode($ret_str);
+	}
+
+	function post_handle_change_layout_name($layout_name, $new_layout_name){
+		$action = new Project_action;
+		$action->init();	
+		$layoutObj=new Layout;
+		$layoutObj->name=$layout_name;
+
+		$action->change_layout_name($layoutObj, $new_layout_name);
+	}
+
+	function post_handle_change_layout_sql($layout_name, $sql){
+		$action = new Project_action;
+		$action->init();	
+		$layoutObj=new Layout;
+		$layoutObj->name=$layout_name;
+
+		$action->change_layout_sql($layoutObj, $sql);
+	}
+
+	function post_handle_destroy_layout($layout_name){
+		$action = new Project_action;
+		$action->init();	
+		$layoutObj=new Layout;
+		$layoutObj->name=$layout_name;
+
+		$action->destroy_layout($layoutObj);
+	}
+
 	function post_handle_post(){
 			$type = $_POST['type'];
 
@@ -201,7 +314,7 @@ class Handle_post{
 				$row=$_POST['row'];
 				$this->post_handle_delete($table, $row);
 			}
-			
+	
 			if( $type == 8 ){
 				$user=$_POST['user'];
 				$pass=$_POST['pass'];
@@ -214,6 +327,64 @@ class Handle_post{
 			
 			if( $type == 10 ){
 				$this->post_handle_get_tablelist();
+			}
+
+			if( $type == 11 ){
+				$table_name=$_POST['table'];
+				$this->post_handle_get_columnlist($table_name);
+			}
+
+			if( $type == 12 ){
+				$table_name=$_POST['table'];
+				$column_name=$_POST['column_name'];
+				$column_type=$_POST['column_type'];
+				$this->post_handle_add_column($table_name, $column_name, $column_type);
+			}
+
+			if( $type == 13 ){
+				$table_name=$_POST['table'];
+				$new_table_name=$_POST['new_table_name'];
+				$this->post_handle_change_table_name($table_name, $new_table_name);
+			}
+
+			if( $type == 14 ){
+				$table_name=$_POST['table'];
+				$column_name=$_POST['column_name'];
+				$new_column_name=$_POST['new_column_name'];
+				$new_column_type=$_POST['new_column_type'];
+				$this->post_handle_change_column_name($table_name, $column_name, $new_column_name, $new_column_type);
+			}
+
+			if( $type == 15 ){
+				$table_name=$_POST['table'];
+				$column_name=$_POST['column_name'];
+				$this->post_handle_destroy_column($table_name, $column_name);
+			}
+
+			if( $type == 16 ){
+				$table_name=$_POST['table'];
+				$this->post_handle_destroy_table($table_name);
+			}
+
+			if( $type == 17 ){
+				$this->post_handle_get_layoutlist();
+			}
+
+			if( $type == 18 ){
+				$layout_name=$_POST['layout'];
+				$new_layout_name=$_POST['new_layout_name'];
+				$this->post_handle_change_layout_name($layout_name, $new_layout_name);
+			}
+
+			if( $type == 19 ){
+				$layout_name=$_POST['layout'];
+				$sql=$_POST['sql'];
+				$this->post_handle_change_layout_sql($layout_name, $sql);
+			}
+
+			if( $type == 20 ){
+				$layout_name=$_POST['layout'];
+				$this->post_handle_destroy_layout($layout_name);
 			}
 	}
 

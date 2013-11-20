@@ -93,6 +93,55 @@ class Project_action{
 	function get_table_list(){
 		return $this->db->db_get_tables();
 	}
+
+	function get_column_list($table){
+		$table_name=$table->table_name;
+		return $this->db->db_get_table_columns_by_name($table_name);
+	}
+
+	function add_column($tableObj, $column_name, $column_type){
+		$table_name=$tableObj->table_name;
+		$this->db->db_add_column($table_name, $column_name, $column_type);
+	}
+
+	function change_table_name($tableObj, $new_table_name){
+		$table_name=$tableObj->table_name;
+		$this->db->db_change_table_name($table_name, $new_table_name);
+	}
+
+	function change_column_name($tableObj, $column_name, $new_column_name, $new_column_type){
+		$table_name=$tableObj->table_name;
+		$this->db->db_change_column_name($table_name, $column_name, $new_column_name, $new_column_type);	
+	}
+
+	function destroy_column($tableObj, $column_name){
+		$table_name=$tableObj->table_name;
+		$this->db->db_destroy_column($table_name, $column_name);
+	}
+
+	function destroy_table($tableObj){
+		$table_name=$tableObj->table_name;
+		$this->db->db_destroy_table($table_name);
+	}
+
+	function get_layout_list(){
+		return $this->db->db_get_layouts();
+	}
+
+	function change_layout_name($layoutObj, $new_layout_name){
+		$layout_name=$layoutObj->name;
+		$this->db->db_change_layout_name($layout_name, $new_layout_name);
+	}
+
+	function change_layout_sql($layoutObj, $sql){
+		$layout_name=$layoutObj->name;
+		$this->db->db_change_layout_sql($layout_name, $sql);
+	}
+
+	function destroy_layout($layoutObj){
+		$layout_name=$layoutObj->name;
+		$this->db->db_destroy_layout($layout_name);
+	}
 }
 
 
