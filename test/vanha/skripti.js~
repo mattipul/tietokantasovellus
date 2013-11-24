@@ -1,0 +1,9 @@
+function display_to(id, attr){
+	document.getElementById(id).style.display=attr;
+}
+
+function avaa_valilehti(index){	
+	if(index==0){
+		display_to("arkisto-xml", "block");
+	}
+}

@@ -68,7 +68,7 @@ $project->project_create_project();
 		    <span class="icon-bar"></span>
 		  </button>
 		</div>
-		<div class="collapse navbar-collapse" style="max-height:30px">
+		<div class="collapse navbar-collapse" style="max-height:30px;">
 		  <ul class="nav navbar-nav" >
 			<li>
 			  <a data-toggle="dropdown" style="padding:5px;margin-left:5px;" href="#">Tietokanta</a>
@@ -90,8 +90,6 @@ $project->project_create_project();
 			    <hr/>
 			    <li><a class="sis" href="#">Hallitse käyttäjien oikeuksia</a></li>
 			    <li><a class="sis" href="#">Poista käyttäjä</a></li>
-				<hr/>
-				<li><a class="sis" onclick="sign_out();" href="#">Kirjaudu ulos</a></li>
 			    <hr/>
 			  </ul>
 			</li>
@@ -102,6 +100,13 @@ $project->project_create_project();
 			    <li><a class="sis" href="#">Ohjeita</a></li>
 			    <hr/>
 			  </ul>
+			</li>
+			
+			
+		  </ul>
+		  <ul class="nav navbar-nav" style="float:right">
+		  	<li>
+			  <a data-toggle="dropdown" onclick="sign_out();" style="padding:5px;margin-left:10px;" href="#">Kirjaudu ulos</a>
 			</li>
 		  </ul>
 		</div><!--/.nav-collapse -->
@@ -121,7 +126,9 @@ $project->project_create_project();
 	    </div><!-- /.container -->
 
 	<div id="status">
-	<span style="margin:5px;">Rivi </span><span id="row_span" style="margin:5px;">1</span>
+	<div style="margin:3px;">
+	<span>Rivi </span><span id="row_span" style="margin:5px;">1</span>
+	</div>
 	</div>
 
 

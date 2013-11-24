@@ -32,13 +32,14 @@ class Xml{
 
 ///ARKISTO///
 
-	function xml_text_string($text){
+	function xml_text_string($text, $text_style){
 		$ret="";
 		$string=$text->string[0];
 		$data=$text->data[0];		
 		$laskuri=1;
-
+		$ret=$ret."<div style='".$text_style."'>";
 		while($string!=NULL || $data!=NULL){
+			
 			if($string!=NULL){
 				$ret=$ret."<span>".$string."</span>";
 			}
@@ -49,7 +50,7 @@ class Xml{
 			$data=$text->data[$laskuri];
 			$laskuri++;
 		}
-
+		$ret=$ret."<d/div>";
 		return $ret;
 	}
 
@@ -58,7 +59,7 @@ class Xml{
 
 		foreach ($div->text as $text) {
 			$text_style = $text['style'];
-			$html=$html."".$this->xml_text_string($text)."";			
+			$html=$html."".$this->xml_text_string($text, $text_style)."";			
 		}
 
 		return $html;
@@ -208,19 +209,87 @@ class Xml{
 		}	
 		return $insert_html;	
 	}
+	
+	function xml_create_searchentry($div, $id, $to){
+		$html="";		
+
+		foreach ($div->searchentry as $search_entry) {
+			$search_entry_style = $search_entry['style'];
+			$html=$html."<input data-sqlstatement='".$to."' data-searchidentifier='".$id."' class='search_entry_".$search_entry['column']."' type='text' style='".$search_entry_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+
+	function xml_create_searchok($div, $id, $to){
+		$html="";		
+
+		foreach ($div->searchok as $search_ok) {
+			$search_ok_style = $search_ok['style'];
+			$html=$html."<input onclick='search(this);' data-sqlstatement='".$to."' data-searchidentifier='".$id."' class='insert_button' value='".$search_ok."' type='button' style='".$search_ok_style."'/>";	
+			
+		}
+
+		return $html;
+	}
+	
+	function xml_create_search_section($table, $i){
+		$insert_html="";
+		foreach ($table->searchsection as $search_section) {
+			$search_section_style = $search_section['style'];
+			$search_section_id = $search_section['identifier'];
+			
+			$insert_html="<div data-searchidentifier='".$search_section_id."' class='search_section_div' style='".$search_section_style."'>";
+   			$insert_html = $insert_html."".$this->xml_create_searchentry($search_section,$search_section_id, $search_section['sqlstatement']);
+			$insert_html = $insert_html."".$this->xml_create_searchok($search_section,$search_section_id, $search_section['sqlstatement']);
+			$insert_html = $insert_html."".$this->xml_create_text_element_browse($search_section);
+			$insert_html = $insert_html."</div>";
+		}	
+		return $insert_html;		
+	}
+	
+	function xml_create_search_results_result($search_results, $id){
+		return "<div style='display:table' class='search_results_div' data-searchresults='on' data-searchidentifier='".$id."' style='".$search_results['style']."'></div>";
+	}
+	
+	function xml_create_search_results($table, $i){
+		$insert_html="";
+		foreach ($table->searchresult as $search_results) {
+			$search_results_style = $search_results['style'];
+			$search_results_id = $search_results['identifier'];
+			
+			$insert_html="<div style='".$search_results_style."'>";
+   			$insert_html = $insert_html."".$this->xml_create_search_results_result($search_results, $search_results_id);
+			$insert_html = $insert_html."</div>";
+		}	
+		return $insert_html;		
+	}
+
+	function print_row_arr($row){
+		$keys=$row->row_keys;
+		$data=$row->row_data;
+		$rowRet=array();
+		for($i=0; $i<count($keys); $i++){
+			$rowRet[$keys[$i]]=$data[$i];
+		}
+		return $rowRet;
+	}
 
 	function xml_create_tables($row){
-		$arr;
+		$arr=array();
 		$i=0;
 		foreach ($this->xml_parsed_insert->table as $table) {
 			$insert_html="<div class='insert_layout' id='insert_layout_".$i."'>";
 			$insert_html=$insert_html.$this->xml_create_div_element_insert($table, $i);
+			$insert_html=$insert_html.$this->xml_create_search_section($table, $i);
+			$insert_html=$insert_html.$this->xml_create_search_results($table, $i);
 			$insert_html=$insert_html."</div>";
 			$arr[]=$insert_html;
 			$arr[]=$table['name'];
 			if( strlen($table['name']) >0 ){
-			$to="SELECT * FROM ".$table['to'];
-				$arr[]=$this->db->db_get_row($row, $to);
+				$to="SELECT * FROM ".$table['to'];
+				$arr[]=$this->print_row_arr($this->db->db_get_row($row, $to));
 			}
 			else{
 				$arr[]="";

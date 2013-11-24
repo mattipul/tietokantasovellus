@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 session_start();
 
@@ -65,7 +65,6 @@ else{
   function auth(){
 	var user_str=$("#user").val();
 	var pass_str=$("#pass").val();
-	
 	$.post( "php/handle_post.php", { type:8, user:user_str, pass:pass_str})
 	.done(function(data ) {
 		if(data==1){

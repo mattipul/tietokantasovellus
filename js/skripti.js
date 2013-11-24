@@ -8,6 +8,10 @@ var current_row_id=1;
 var current_layout_id=1;
 var current_insid_id=0;
 
+function htmlEntities(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 window.onresize = function(event) {
    	var height_layout = document.getElementById('status').offsetTop - 130; 
 	$('#xml-area-arkisto'+current_layout_id).height( height_layout );
@@ -71,15 +75,17 @@ function create_table(){
 
 	$.post( "php/handle_post.php", { type:5, table_name: $("#taulun_nimi").val(), table_columns:column_str})
 	.done(function(data ) {
-		
+		alert(data);
 	});
 
 }
 
 function set_current_layout(id){
 	current_layout_id=id;
+	
 	$.post( "php/handle_post.php", { type:3, layout_id: current_layout_id, row: 1})
 	.done(function(data ) {
+	
 		var asetelma = jQuery.parseJSON( data );	
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -87,7 +93,7 @@ function set_current_layout(id){
 		set_xml_browse_data(current_layout_id, asetelma[1].xml_browse);
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
-		set_column_data(current_layout_id, asetelma[2][0]);
+		set_column_data(current_layout_id, asetelma[2]);
 	});
 
 	var height_layout = document.getElementById('status').offsetTop - 130; 
@@ -128,9 +134,9 @@ function avaa_valilehti(index, nmn){
 }
 
 function refresh(){
+
 	$.post( "php/handle_post.php", { type:2, row: current_row_id, layout_id: current_layout_id, xml_browse: $('#xml-area-arkisto'+current_layout_id).val(), xml_insert:$('#xml-area-yllapito'+current_layout_id).val(), layout_name:current_layout.name, layout_sqlstatement:current_layout.sqlstatement })
 	.done(function(data ) {
-		alert(data);
 		var asetelma = jQuery.parseJSON( data );
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -138,7 +144,7 @@ function refresh(){
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
 		set_html_insert(current_layout_id, asetelma[0].insert_html);
-		set_column_data(current_layout_id, asetelma[2][0]);
+		set_column_data(current_layout_id, asetelma[2]);
 	});
 }
 
@@ -155,7 +161,7 @@ function next(){
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
 		set_html_insert(current_layout_id, asetelma[0].insert_html);
-		set_column_data(current_layout_id, asetelma[2][0]);
+		set_column_data(current_layout_id, asetelma[2]);
 		 $('#yllapito-tabit'+current_layout_id+' li:eq('+current_insid_id+') a').tab('show');
 	});
 }
@@ -175,7 +181,7 @@ function previous(){
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
 		set_html_insert(current_layout_id, asetelma[0].insert_html);
-		set_column_data(current_layout_id, asetelma[2][0]);
+		set_column_data(current_layout_id, asetelma[2]);
 		$('#yllapito-tabit'+current_layout_id+' li:eq('+current_insid_id+') a').tab('show');
 	});
 }
@@ -203,25 +209,28 @@ function set_html_browse(layout_id, data){
 }
 
 function set_html_insert(layout_id, data){
+
 	var insert_div=document.getElementById('yllapito'+layout_id);
 	var insert_tabs='<ul id="yllapito-tabit'+current_layout_id+'" class="nav nav-tabs">';
 	var c=0;
 	for(var i=1; i<data.length; i+=3){
-		insert_tabs=insert_tabs+'<li><a onclick="change_insid('+c+')" href="#inserter'+(i-1)+'" data-toggle="tab">'+data[i][0]+'</a></li>';
+		insert_tabs=insert_tabs+'<li><a onclick="change_insid('+c+')" href="#'+current_layout_id+'inserter'+c+'" data-toggle="tab">'+data[i][0]+'</a></li>';
 		c++;
 	}
 	insert_tabs=insert_tabs+"</ul>";
 
 	var insert_divs='<div class="tab-content">';
+	c=0;
 	for(var i=0; i<data.length; i+=3){
-		insert_divs=insert_divs+'<div class="tab-pane" id="inserter'+i+'">'+data[i]+'</div>';
+		insert_divs=insert_divs+'<div class="tab-pane" id="'+current_layout_id+'inserter'+c+'">'+data[i]+'</div>';
+		c++;
 		//set_column_data_insert(data[i+2][0]);
 	}
 	insert_divs=insert_divs+"</div>";
 
 	insert_div.innerHTML=insert_tabs+insert_divs;
 	for(var i=2; i<data.length; i+=3){
-		set_column_data_insert(data[i][0]);
+		set_column_data_insert(data[i]);
 	}
 }
 
@@ -261,18 +270,18 @@ function insert_data_to_database(painike, insid){
 	var post_string_keys=new Array();
 	var post_string_data=new Array();
 	var post_string_lengths=new Array();
-	$("div#inserter"+$(painike).data("insid")+" input:text").each(function(){
+	$("div#"+current_layout_id+"inserter"+$(painike).data("insid")+" input:text").each(function(){
 		post_string_keys.push($(this).attr('class').substring(13));
 		post_string_data.push($(this).val()); 
+		alert($(this).val());
 		post_string_lengths.push($(this).val().length); 
 	});
 	
-	$("div#inserter"+$(painike).data("insid")+" textarea").each(function(){
+	$("div#"+current_layout_id+"inserter"+$(painike).data("insid")+" textarea").each(function(){
 		post_string_keys.push($(this).attr('class').substring(13));
 		post_string_data.push($(this).val()); 
 		post_string_lengths.push($(this).val().length); 
 	});
-
 	$.post( "php/handle_post.php", { type:6, table: $(painike).data("table"), row: current_row_id, data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
 		alert(data);
@@ -300,14 +309,173 @@ function get_table_list(){
 			var tables = jQuery.parseJSON( data );
 			for(var i=0; i<tables.length; i++){
 				if(tables[i] !== undefined){
-					$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option value='"+tables[i].table_name+"'>"+tables[i].table_name+"</option>" );
+					$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option data-listtype='table' value='"+tables[i].table_name+"'>"+tables[i].table_name+"</option>" );
 					for(var j=0; j<tables[i].columns.length; j++){
-						$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option style='color:rgb(100,100,150)' value='"+tables[i].columns[j].sarakkeen_nimi+"'>-"+tables[i].columns[j].sarakkeen_nimi+":"+tables[i].columns[j].sarakkeen_tyyppi+"</option>" );
+						$("#taulujen_nimet").html( $("#taulujen_nimet").html() + "<option data-listtype='column' data-table='"+tables[i].table_name+"' style='color:rgb(100,100,150)' value='"+tables[i].columns[j].column_name+"'>-"+tables[i].columns[j].column_name+":"+tables[i].columns[j].column_type+"</option>" );
 					}
 				}
 			}
 	});
 }
 
+function column_list(id,table_name){
+		$.post( "php/handle_post.php", { type:11, table:table_name})
+		.done(function(data ) {
+			var columns = jQuery.parseJSON( data );
+			for(var i=0; i<columns.length; i++){			
+				$(id).html($(id).html()+"<option>"+columns[i]+"</option>");
+			}
+		});	
+}
+
+function add_column(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		var column_name=$("#uusi_sarakkeen_nimi").val();
+		var column_type=$("#uusi_sarakkeen_tyyppi").val();
+		$.post( "php/handle_post.php", { type:12, table:table_name, column_name:column_name,column_type:column_type })
+		.done(function(data ) {
+			alert(data);
+		});
+	}
+}
+
+function change_table_name(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		var new_table_name=$("#uusi_taulun_nimi").val();
+		$.post( "php/handle_post.php", { type:13, table:table_name, new_table_name:new_table_name })
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function change_column_name(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "column" ){
+		var column_name=$("#taulujen_nimet").val();
+		var new_column_name=$("#uusi_sarakkeen_nimi_muuta").val();
+		var table_name=$("#taulujen_nimet option:selected").data("table");
+		var new_column_type=$("#muuta_sarakkeen_tyyppi").val();
+		$.post( "php/handle_post.php", { type:14, table:table_name, column_name:column_name, new_column_name:new_column_name, new_column_type:new_column_type })
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function destroy_column(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "column" ){
+		var column_name=$("#taulujen_nimet").val();
+		var table_name=$("#taulujen_nimet option:selected").data("table");
+		$.post( "php/handle_post.php", { type:15, table:table_name, column_name:column_name})
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function destroy_table(){
+	if( $("#taulujen_nimet option:selected").data("listtype") === "table" ){
+		var table_name=$("#taulujen_nimet").val();
+		$.post( "php/handle_post.php", { type:16, table:table_name})
+		.done(function(data ) {
+			alert(data);
+		});
+	}	
+}
+
+function get_layout_list(){
+	$("#asetelmien_nimet").html("");
+	$.post( "php/handle_post.php", { type:17 })
+	.done(function(data ) {
+			var layouts = jQuery.parseJSON( data );
+			for(var i=0; i<layouts.length; i++){
+				if(layouts[i] !== undefined){
+					$("#asetelmien_nimet").html( $("#asetelmien_nimet").html() + "<option value='"+layouts[i].layout_name+"'>"+layouts[i].layout_name+"("+layouts[i].sql+")</option>" );
+				}
+			}
+	});
+}
 
 
+function change_layout_name(){
+	var new_layout_name=$("#uusi_asetelman_nimi").val();
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:18, layout:layout, new_layout_name:new_layout_name })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+
+function change_layout_sql(){
+	var sql=$("#uusi_sqllauseke").val();
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:19, layout:layout, sql:sql })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+function destroy_layout(){
+	var layout=$("#asetelmien_nimet").val();
+	$.post( "php/handle_post.php", { type:20, layout:layout })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+function search(painike){
+	var post_string_keys=new Array();
+	var post_string_data=new Array();
+	var post_string_lengths=new Array();
+	var identifier="";
+	var results;
+	$( ".search_section_div" ).each(function() {
+		identifier=$(this).data("searchidentifier");
+		$(this).children("input:text").each(function() {
+			post_string_keys.push($(this).attr("class").substring(13));
+			post_string_data.push($(this).val());
+			post_string_lengths.push($(this).val().length);
+		});
+	});
+	
+	$( ".search_results_div" ).each(function() {
+		if( $(this).data("searchidentifier") === identifier ){
+			results=this;
+		}
+	});
+	
+	
+	$.post( "php/handle_post.php", { type:21, sql: $(painike).data("sqlstatement"), data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
+	.done(function(data ) {
+		var results_data = jQuery.parseJSON( data );
+
+		var keys1=Object.keys(results_data[0]);
+		var tablehtml;
+		tablehtml="<div style='display:table;width:100%;table-layout: fixed;'><table width='100%'><tr>";
+
+		for(var j=keys1.length/2; j<keys1.length; j++){
+			tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+		}
+		
+		tablehtml=tablehtml+"</tr>";
+		
+		for(var i=0; i<results_data.length; i++){
+			var keys=Object.keys(results_data[i]);
+			tablehtml=tablehtml+"<tr>";
+			for(var j=keys.length/2; j<keys.length; j++){
+				//alert(results_data[i].asetelman_nimi);
+				tablehtml=tablehtml+"<td class='search_tab_b'><span>"+htmlEntities(results_data[i][keys[j]]).substring(0,20)+"...</span><span style='display:none'>"+htmlEntities(results_data[i][keys[j]]).substring(20,htmlEntities(results_data[i][keys[j]]).length)+"</span></td>";
+			}
+			tablehtml=tablehtml+"</tr>";
+		}
+		
+		tablehtml=tablehtml+"</table></div>";
+		
+		results.innerHTML=tablehtml;
+		
+	});
+	
+}

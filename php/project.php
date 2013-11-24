@@ -18,25 +18,25 @@ class Project{
 				<div class="btn-group" style="">
 				  	<button type="button" class="btn btn-default" onclick="previous();"><span class="glyphicon glyphicon-circle-arrow-left"></span></button>
 					<button type="button" class="btn btn-default" onclick="next();"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
-					<button type="button" class="btn btn-default" onclick="avaa_valilehti(0,'.$i.')"><span class="glyphicon glyphicon-edit"></span> Arkisto XML</button>
-					<button type="button" class="btn btn-default" onclick="avaa_valilehti(1,'.$i.')"><span class="glyphicon glyphicon-edit"></span> Ylläpito XML</button>
-					<button type="button" class="btn btn-default" onclick="avaa_valilehti(2,'.$i.')"><span class="glyphicon glyphicon-book"></span> Ylläpito</button>
-					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$i.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
+					<button type="button" class="btn btn-default" onclick="avaa_valilehti(0,'.$layout->id.')"><span class="glyphicon glyphicon-edit"></span> Arkisto XML</button>
+					<button type="button" class="btn btn-default" onclick="avaa_valilehti(1,'.$layout->id.')"><span class="glyphicon glyphicon-edit"></span> Ylläpito XML</button>
+					<button type="button" class="btn btn-default" onclick="avaa_valilehti(2,'.$layout->id.')"><span class="glyphicon glyphicon-book"></span> Ylläpito</button>
+					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout->id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
 					<button type="button" class="btn btn-default" onclick="refresh();"><span class="glyphicon glyphicon-refresh"></span></button>
 				</div>
 				</div>
 
-				<div id="arkisto-xml'.$i.'" class="arkisto-xml">
-					<textarea class="xml-area" id="xml-area-arkisto'.$i.'">'.$layout_browse_xml.'</textarea>
+				<div id="arkisto-xml'.$layout->id.'" class="arkisto-xml">
+					<textarea class="xml-area" id="xml-area-arkisto'.$layout->id.'">'.$layout_browse_xml.'</textarea>
 				</div>
 
-				<div id="yllapito-xml'.$i.'" class="yllapito-xml">
-					<textarea class="xml-area" id="xml-area-yllapito'.$i.'">'.$layout_insert_xml.'</textarea>
+				<div id="yllapito-xml'.$layout->id.'" class="yllapito-xml">
+					<textarea class="xml-area" id="xml-area-yllapito'.$layout->id.'">'.$layout_insert_xml.'</textarea>
 				</div>
 
-				<div id="yllapito'.$i.'" class="yllapito">
+				<div id="yllapito'.$layout->id.'" class="yllapito">
 				</div>
-				<div id="arkisto'.$i.'" class="arkisto">
+				<div id="arkisto'.$layout->id.'" class="arkisto">
 				</div>
 			</div>';
 	}
@@ -44,7 +44,7 @@ class Project{
 	function project_create_layout($i){
 		$layout=(object)$this->layouts[$i];
 		$layout_name=str_replace(" ", "", $layout->name);
-		echo '<li><a onclick="set_current_layout('.$i.')" href="#'.$layout_name.'" data-toggle="tab">'.$layout_name.'</a></li>';
+		echo '<li><a onclick="set_current_layout('.$layout->id.')" href="#'.$layout_name.'" data-toggle="tab">'.$layout_name.'</a></li>';
 	}
 
 	function project_create_layouts(){
