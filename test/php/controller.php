@@ -1,5 +1,6 @@
 <?php
-
+ini_set('default_charset', 'UTF-8');
+mb_internal_encoding("UTF-8");
 ini_set('display_errors',1); 
 error_reporting(E_ALL);
 require_once("login.php");
@@ -10,11 +11,15 @@ require_once('layout.php');
 require_once("row.php");
 require_once("column.php");
 require_once("search_results.php");
+require_once("permission.php");
+require_once("hash.php");
 
 class Controller{
 
 	public $db;
 	public $xml;
+	public $hash;
+	public $permission;
 
 	function init(){
 		$this->db=new Database;
@@ -22,6 +27,53 @@ class Controller{
 		$this->db->db_create_connection("sovellus", "ietokantawi0Bieyo");
 
 		$this->xml=new Xml;
+		$this->hash=new Hash;
+		$this->permission=new Permission;
+	}
+
+
+	function check_user_session(){
+		if (session_id() == '') {
+			session_start();
+		}
+		if( empty( $_SESSION['id'] ) ){
+			die("pöö");
+		}
+	}
+
+	function is_admin(){
+
+		if($this->admin($_SESSION['id'])!=1){
+			die("pööas");
+		}
+	}
+
+	function has_read_rights($layout_id){
+		$userObj=new User;
+		$userObj->user_id=$_SESSION['id'];
+		$layotObj=new Layout;
+		$layoutObj->id=$layout_id;
+		$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
+		if( $this->admin($_SESSION['id'])!=1 && $retperm!=1 && $retperm!=2){
+			die($retperm);
+		}
+	}
+
+	function has_write_rights($layout_id){
+		$userObj=new User;
+		$userObj->user_id=$_SESSION['id'];
+		$layotObj=new Layout;
+		$layoutObj->id=$layout_id;
+		$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
+		if($this->admin($_SESSION['id'])!=1 && $retperm!=1){
+			die($retperm);
+		}
+	}
+
+	function admin($user_id){
+		$userObj=new User;
+		$userObj->user_id=$user_id;
+		return $this->permission->permission_is_admin($this->db, $userObj);
 	}
 	
 	function controller_check_layout_name($layout_name){
@@ -200,17 +252,18 @@ class Controller{
 		}
 	}
 	
-	function controller_insert_data($data_keys, $data_data, $data_lengths, $table, $row_c){
-		if( $data_keys!=NULL && $data_data!=NULL && $data_lengths!=NULL && $table!=NULL && $row_c!=NULL ){
+	function controller_insert_data($data_keys, $data_data, $data_lengths, $table, $row_c, $layout_id){
+		if( $data_keys!=NULL && $data_data!=NULL && $data_lengths!=NULL && $table!=NULL && $row_c!=NULL && $layout_id!=NULL ){
 			$data_keys_arr=explode(",", $data_keys);
 			$data_lengths_arr=explode(",", $data_lengths);
 			$data_data_arr;
-		
+			var_dump($data_lengths_arr);
+			var_dump($data_data);
 			$c=0;
 			for($i=0; $i<count($data_lengths_arr); $i++){
-				$data_data_arr[]=substr($data_data, $c, $data_lengths_arr[$i]);
-				echo substr($data_data, $c, $data_lengths_arr[$i]) ." ".$c."|";
-				$c+=$data_lengths_arr[$i]+1;
+				$data_data_arr[]=mb_substr($data_data, $c, $data_lengths_arr[$i]);
+				echo mb_substr($data_data, $c, $data_lengths_arr[$i]) ." ".$data_lengths_arr[$i]."|";
+				$c=$data_lengths_arr[$i]+1;
 			}
 
 			$row=new Row;
@@ -218,7 +271,13 @@ class Controller{
 			$row->row_data=$data_data_arr;	
 			$row->count=$row_c;
 
-			$this->set_row($row,$table);
+			$layout_ret=$this->db->db_get_layout($layout_id);	
+			$layout=(object)$layout_ret;
+			$this->xml->init_db();
+			$this->xml->xml_parse_insert($layout->xml_insert);
+			$table_name=$this->xml->xml_get_table_from_name($table);
+
+			$this->set_row($row,$table_name);
 		}
 	}
 	
@@ -233,11 +292,16 @@ class Controller{
 		
 	}
 	
-	function controller_delete_data($table, $row){
+	function controller_delete_data($table, $row, $layout_id){
 		if($table!=NULL && $row!=NULL){
 			$rowObj=new Row;
 			$rowObj->count=$row;
-			$this->delete_row($rowObj, $table);
+			$layout_ret=$this->db->db_get_layout($layout_id);	
+			$layout=(object)$layout_ret;
+			$this->xml->init_db();
+			$this->xml->xml_parse_insert($layout->xml_insert);
+			$table_name=$this->xml->xml_get_table_from_name($table);
+			$this->delete_row($rowObj, $table_name);
 		}
 	}
 	
@@ -396,8 +460,8 @@ class Controller{
 	
 	}
 	
-	function controller_search($data_keys, $data_data, $data_lengths, $sql){
-		if( $data_keys!=NULL && $data_data!=NULL && $data_lengths!=NULL && $sql!=NULL ){
+	function controller_search($data_keys, $data_data, $data_lengths, $identifier, $layout_id){
+		if( $data_keys!=NULL && $data_data!=NULL && $data_lengths!=NULL && $identifier!=NULL && $layout_id!=NULL ){
 			$data_keys_arr=explode(",", $data_keys);
 			$data_lengths_arr=explode(",", $data_lengths);
 			$data_data_arr;
@@ -410,10 +474,139 @@ class Controller{
 		
 			$ret_data[0]=$data_keys_arr;
 			$ret_data[1]=$data_data_arr;
+
+			$layout_ret=$this->db->db_get_layout($layout_id);	
+			$layout=(object)$layout_ret;
+			$this->xml->init_db();
+			$this->xml->xml_parse_insert($layout->xml_insert);
+			$sql=$this->xml->xml_get_sqlstatement_from_identifier($identifier);
+
 			$search_results=$this->db->db_search($ret_data, $sql);
 			echo json_encode($search_results->resultsArr);
 		}	
 	}
+
+	function controller_add_user($username, $password1, $password2){
+		if($username!=NULL && $password1!=NULL && $password2!=NULL){
+			if(strcmp($password1, $password2) == 0){
+				$userObj=new User;
+				$userObj->username=$username;
+				$crypted_arr=$this->hash->crypt_password($password1);
+				$userObj->hash=$crypted_arr[0];
+				$userObj->salt=$crypted_arr[1];
+				$this->db->db_create_user($userObj);
+			}
+		}
+	}
+
+	function controller_get_user_list(){
+		$user_list=$this->db->db_get_users();
+		echo json_encode($user_list);
+	}
+
+	function controller_get_layout_list_permission($user_id){
+		if( $user_id!=NULL ){
+			$userObj=new User;
+			$userObj->user_id=$user_id;
+			$layout_list=$this->db->db_get_layouts();
+			$ret_str;
+			$c=0;
+			for($i=0; $i<count($layout_list); $i++){
+				if($layout_list[$i]!=NULL){
+					$ret_str[$c]['layout_name']=$layout_list[$i]->name;
+					$ret_str[$c]['layout_id']=$layout_list[$i]->id;
+					$permission=$this->db->db_check_layout_permission($layout_list[$i], $userObj);
+					if($this->permission->permission_is_admin($this->db, $userObj)==1){
+						$ret_str[$c]['admin']=1;
+					}else{
+						if(count($permission)==1){
+							$ret_str[$c]['permission']=$permission[0]['oikeus'];
+						}
+					}
+					$c++;
+				}
+			}
+		
+			echo json_encode($ret_str);
+		}
+	}
+
+	function controller_get_layout_list_permission_nojson($user_id){
+		if( $user_id!=NULL ){
+			$userObj=new User;
+			$userObj->user_id=$user_id;
+			$layout_list=$this->db->db_get_layouts();
+			$ret_str;
+			$c=0;
+			for($i=0; $i<count($layout_list); $i++){
+				if($layout_list[$i]!=NULL){
+					$ret_str[$c]['admin']=0;
+					$ret_str[$c]['layout_name']=$layout_list[$i]->name;
+					$ret_str[$c]['layout_id']=$layout_list[$i]->id;
+					$ret_str[$c]['xml_browse']=$layout_list[$i]->xml_browse;
+					$ret_str[$c]['xml_insert']=$layout_list[$i]->xml_insert;
+					$permission=$this->db->db_check_layout_permission($layout_list[$i], $userObj);
+					if($this->permission->permission_is_admin($this->db, $userObj)==1){
+						$ret_str[$c]['admin']=1;
+					}else{
+						if(count($permission)==1){
+							$ret_str[$c]['permission']=$permission[0]['oikeus'];
+						}
+					}
+					$c++;
+				}
+			}
+		
+			return $ret_str;
+		}
+	}
+
+	function controller_read_rights($layout_id, $user_id){
+		if( $layout_id!=NULL && $user_id!=NULL ){
+			$layoutObj=new Layout;
+			$userObj=new User;
+			$layoutObj->id=$layout_id;
+			$userObj->user_id=$user_id;
+			$this->db->db_read_rights($layoutObj, $userObj);
+		}
+	}
+
+	function controller_write_rights($layout_id, $user_id){
+		if( $layout_id!=NULL && $user_id!=NULL ){
+			$layoutObj=new Layout;
+			$userObj=new User;
+			$layoutObj->id=$layout_id;
+			$userObj->user_id=$user_id;
+			$this->db->db_write_rights($layoutObj, $userObj);
+		}
+	}
+
+	function controller_notvisible_rights($layout_id, $user_id){
+		if( $layout_id!=NULL && $user_id!=NULL ){
+			$layoutObj=new Layout;
+			$userObj=new User;
+			$layoutObj->id=$layout_id;
+			$userObj->user_id=$user_id;
+			$this->db->db_notvisible_rights($layoutObj, $userObj);
+		}
+	}
+
+	function controller_make_admin($user_id){
+		if( $user_id!=NULL ){
+			$userObj=new User;
+			$userObj->user_id=$user_id;
+			$this->db->db_make_admin($userObj);
+		}
+	}
+
+	function controller_destroy_user($user_id){
+		if( $user_id!=NULL ){
+			$userObj=new User;
+			$userObj->user_id=$user_id;
+			$this->db->db_destroy_user($userObj);
+		}
+	}
+
 
 }
 

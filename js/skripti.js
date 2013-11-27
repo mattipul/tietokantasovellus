@@ -85,7 +85,6 @@ function set_current_layout(id){
 	
 	$.post( "php/handle_post.php", { type:3, layout_id: current_layout_id, row: 1})
 	.done(function(data ) {
-	
 		var asetelma = jQuery.parseJSON( data );	
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -93,6 +92,7 @@ function set_current_layout(id){
 		set_xml_browse_data(current_layout_id, asetelma[1].xml_browse);
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
+		set_html_insert(current_layout_id, asetelma[0].insert_html);
 		set_column_data(current_layout_id, asetelma[2]);
 	});
 
@@ -137,6 +137,7 @@ function refresh(){
 
 	$.post( "php/handle_post.php", { type:2, row: current_row_id, layout_id: current_layout_id, xml_browse: $('#xml-area-arkisto'+current_layout_id).val(), xml_insert:$('#xml-area-yllapito'+current_layout_id).val(), layout_name:current_layout.name, layout_sqlstatement:current_layout.sqlstatement })
 	.done(function(data ) {
+
 		var asetelma = jQuery.parseJSON( data );
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -152,8 +153,9 @@ function next(){
 	current_row_id++;
 	$("#row_span").html(current_row_id);
 
-	$.post( "php/handle_post.php", { type:0, layout_id: current_layout_id, row: current_row_id, layout_name:current_layout.name, layout_sqlstatement:current_layout.sqlstatement })
+	$.post( "php/handle_post.php", { type:0, layout_id: current_layout_id, row: current_row_id })
 	.done(function(data ) {
+
 		var asetelma = jQuery.parseJSON( data );	
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -172,8 +174,9 @@ function previous(){
 	}
 	$("#row_span").html(current_row_id);
 
-	$.post( "php/handle_post.php", { type:1, layout_id: current_layout_id, row: current_row_id, layout_name:current_layout.name, layout_sqlstatement:current_layout.sqlstatement })
+	$.post( "php/handle_post.php", { type:1, layout_id: current_layout_id, row: current_row_id })
 	.done(function(data ) {
+
 		var asetelma = jQuery.parseJSON( data );
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -272,9 +275,8 @@ function insert_data_to_database(painike, insid){
 	var post_string_lengths=new Array();
 	$("div#"+current_layout_id+"inserter"+$(painike).data("insid")+" input:text").each(function(){
 		post_string_keys.push($(this).attr('class').substring(13));
-		post_string_data.push($(this).val()); 
-		alert($(this).val());
-		post_string_lengths.push($(this).val().length); 
+		post_string_data.push(htmlEntities($(this).val())); 
+		post_string_lengths.push(htmlEntities($(this).val()).length); 
 	});
 	
 	$("div#"+current_layout_id+"inserter"+$(painike).data("insid")+" textarea").each(function(){
@@ -282,14 +284,14 @@ function insert_data_to_database(painike, insid){
 		post_string_data.push($(this).val()); 
 		post_string_lengths.push($(this).val().length); 
 	});
-	$.post( "php/handle_post.php", { type:6, table: $(painike).data("table"), row: current_row_id, data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
+	$.post( "php/handle_post.php", { type:6, layout_id:current_layout_id, table: $(painike).data("table"), row: current_row_id, data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
 		alert(data);
 	});
 }
 
 function delete_data_from_database(painike, insid){
-	$.post( "php/handle_post.php", { type:7, table: $(painike).data("table"), row: current_row_id })
+	$.post( "php/handle_post.php", { type:7,layout_id:current_layout_id, table: $(painike).data("table"), row: current_row_id })
 	.done(function(data ) {
 		alert(data);
 	});
@@ -298,7 +300,7 @@ function delete_data_from_database(painike, insid){
 function sign_out(){
 	$.post( "php/handle_post.php", { type:9 })
 	.done(function(data ) {
-			window.location="login.php";
+			window.location="login_auth.php";
 	});
 }
 
@@ -448,7 +450,7 @@ function search(painike){
 	});
 	
 	
-	$.post( "php/handle_post.php", { type:21, sql: $(painike).data("sqlstatement"), data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
+	$.post( "php/handle_post.php", { type:21, layout_id:current_layout_id, identifier: $(painike).data("searchidentifier"), data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
 		var results_data = jQuery.parseJSON( data );
 
@@ -479,3 +481,93 @@ function search(painike){
 	});
 	
 }
+
+function add_user(){
+	$.post( "php/handle_post.php", { type:22, username:$('#uusi_kayttajanimi').val(), password1:$("#uusi_salasana1").val(), password2:$("#uusi_salasana2").val() })
+	.done(function(data ) {
+		alert(data);
+	});
+}
+
+function get_users(list){
+	$(list).html("<option></option>");
+	$.post( "php/handle_post.php", { type:23})
+	.done(function(data ) {
+alert(data);
+		var users = jQuery.parseJSON( data );
+			for(var i=0; i<users.length; i++){
+				if(users[i] !== undefined){
+					$(list).html( $(list).html() + "<option data-listtype='user' value='"+users[i].user_id+"'>"+users[i].username+"</option>" );
+				}
+			}
+	});
+}
+
+
+function get_layout_list_tolist(id){
+	$(id).html("");
+	alert($("#kayttaja_valinta").val());
+	$.post( "php/handle_post.php", { type:24,user_id:$("#kayttaja_valinta").val() })
+	.done(function(data ) {
+	alert(data);
+			var layouts = jQuery.parseJSON( data );
+			for(var i=0; i<layouts.length; i++){
+				if(layouts[i] !== undefined){
+					var class_perm;					
+					if(layouts[i].permission===undefined ||( layouts[i].admin!=1 && layouts[i].permission==-1 )){
+						class_perm="layout_notvisible";
+					}
+					if(layouts[i].admin==1){
+						class_perm="layout_admin";
+					}
+					if(layouts[i].permission==1){
+						class_perm="layout_write";
+					}
+					if(layouts[i].permission==2){
+						class_perm="layout_read";
+					}
+					$(id).html( $(id).html() + "<option class='"+class_perm+"' value='"+layouts[i].layout_id+"'>"+layouts[i].layout_name+"</option>" );
+				}
+			}
+	});
+}
+
+
+function layout_read_rights(){
+	$.post( "php/handle_post.php", { type:25, layout_id:$("#asetelmien_nimet_kayttaja").val(), user_id:$("#kayttaja_valinta").val() })
+	.done(function(data ) {
+	alert(data);
+	});
+}
+
+function layout_write_rights(){
+	$.post( "php/handle_post.php", { type:26, layout_id:$("#asetelmien_nimet_kayttaja").val(), user_id:$("#kayttaja_valinta").val() })
+	.done(function(data ) {
+	alert(data);
+	});
+}
+
+function layout_notvisible_rights(){
+	$.post( "php/handle_post.php", { type:27, layout_id:$("#asetelmien_nimet_kayttaja").val(), user_id:$("#kayttaja_valinta").val() })
+	.done(function(data ) {
+	alert(data);
+	});
+}
+
+function make_admin(){
+	$.post( "php/handle_post.php", { type:28, user_id:$("#kayttaja_valinta").val() })
+	.done(function(data ) {
+	alert(data);
+	});
+}
+
+function destroy_user(){
+	$.post( "php/handle_post.php", { type:29, user_id:$("#kayttaja_valinta_poisto").val() })
+	.done(function(data ) {
+	alert(data);
+	});
+}
+
+
+
+

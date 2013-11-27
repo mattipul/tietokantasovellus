@@ -150,3 +150,19 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	width:100%;
 	height:100%;
 }
+
+.layout_notvisible{
+	color:red;
+}
+
+.layout_admin{
+	color:green;
+}
+
+.layout_write{
+	color:blue;
+}
+
+.layout_read{
+	color:orange;
+}

@@ -56,24 +56,6 @@ class Database{
 		}
 	}
 
-	function db_exec_esc($sqlstatement, $hide_array){
-		$mysqlquery = $this->database->prepare($sqlstatement);
-		$ret=$mysqlquery->execute($hide_array);
-  		if($ret == FALSE){
-			die("Virhe tietokannassa!");
-		}
-	}
-	
-	function db_select_esc($sqlstatement, $hide_array){
-		$mysqlquery = $this->database->prepare($sqlstatement);
-  		$ret=$mysqlquery->execute($hide_array);
-		if($ret==TRUE){		
-			return $mysqlquery->fetchAll();
-		}else{
-			die("Virhe tietokannassa!");
-		}
-	}
-
 	function db_close_connection(){
 		$this->config=NULL;
 		$this->database=NULL;
@@ -214,14 +196,8 @@ class Database{
 		return $layout_list;
 	}
 
-//INJEKTIOSUOJA(VALMIS)
-
 	function db_get_layout($id){
-		if(!is_numeric($id)){
-			die();
-		}
-		$hide_array=array(":id"=>$id);
-		$ret_object = $this->db_select_esc("SELECT * FROM Asetelma WHERE asetelman_id=:id", $hide_array);
+		$ret_object = $this->db_select("SELECT * FROM Asetelma WHERE asetelman_id=".$id);
 
 		$layout=NULL;
 		foreach ($ret_object as $layouts_row)
@@ -255,15 +231,9 @@ class Database{
 
 	}
 
-//INJEKTIOSUOJA(VALMIS)
-
 	function db_get_row($row, $sql){
-		if(!is_numeric($row)){
-			die();
-		}
 		$sqlstatement=$sql." ORDER BY id ASC LIMIT ".($row-1).",1";
 		$sqlstatement_escaped=$sqlstatement;
-		//echo $sqlstatement;
 		$ret_object = $this->db_select($sqlstatement_escaped);
 		if(count($ret_object)==0){
 			$rowObj=new Row;
@@ -280,99 +250,67 @@ class Database{
 		}
 	}
 
-
 	function db_count_rows($table){
 		$table_name = $table->table_name;
-		$ret_object=$this->db_select( "SELECT COUNT(*) FROM ".$table_name);
+		$ret_object=$this->db_select( "SELECT COUNT(*) FROM ".$table_name."" );
 		return $ret_object[0][0];
 	}
-
-	function db_check_column($table, $column_name){
-		$hide_array=array(":column_name"=>$column_name);
-		$ret_object=$this->db_select_esc("SHOW COLUMNS FROM ".$table->table_name." LIKE :column_name", $hide_array);		
-		if(count($ret_object)!=1){
-			die("Sarake!");
-		}
-	}
-
-//INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)VALMIS
 
 
 	function db_insert_to_database($table, $row){
 		$table_name = $table->table_name;
 		$this->db_exec( "INSERT INTO ".$table_name." (id) VALUES (NULL)" );
-		$hide_array=array();
+
 		$ret_object = $this->db_select("SELECT id FROM ".$table_name." ORDER BY id DESC LIMIT 1");
 		$new_row_id=$ret_object[0]['id'];
 
 		$update_str="UPDATE ".$table_name." SET ";
 		for($i=0; $i<count($row->row_keys); $i++){
-			$this->db_check_column($table, $row->row_keys[$i]);
-			$hide_array[':data'.$i]=$row->row_data[$i];
-			$update_str=$update_str.$row->row_keys[$i]."=:data".$i." ";
+			$update_str=$update_str.$row->row_keys[$i]."='".$row->row_data[$i]."' ";
 			if( $i < count( $row->row_keys )-1 ){
 				$update_str=$update_str.",";
 			}
 		}
 		$update_str=$update_str." WHERE id=".$new_row_id;
 		echo $update_str;
-		$this->db_exec_esc( $update_str, $hide_array );
+		$this->db_exec( $update_str );
 	}
 
-//INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)VALMIS
 	
 	function db_update_row($table, $row){
-		if(!is_numeric($row->count)){
-			die();
-		}
 		$table_name = $table->table_name;
-		$hide_array=array();
 		$ret_object = $this->db_select("SELECT id FROM ".$table_name." ORDER BY id ASC LIMIT ".($row->count-1).",1");
 		$update_row_id=$ret_object[0]['id'];
 
 		$update_str="UPDATE ".$table_name." SET ";
 		for($i=0; $i<count($row->row_keys); $i++){
-			//$update_str=$update_str.$row->row_keys[$i]."='".$row->row_data[$i]."' ";
-			$this->db_check_column($table, $row->row_keys[$i]);
-			$hide_array[':data'.$i]=$row->row_data[$i];
-			$update_str=$update_str.$row->row_keys[$i]."=:data".$i." ";
+			$update_str=$update_str.$row->row_keys[$i]."='".$row->row_data[$i]."' ";
 			if( $i < count( $row->row_keys )-1 ){
 				$update_str=$update_str.",";
 			}
 		}
 		$update_str=$update_str." WHERE id=".$update_row_id;
 		//echo $update_str;
-		$this->db_exec_esc(  $update_str, $hide_array  );
+		$this->db_exec(  $update_str  );
 	}
 
-//INJEKTIOSUOJA(VALMIS)
-
 	function db_delete_row($table, $row){
-		if(!is_numeric($row->count)){
-			die();
-		}
 		$table_name = $table->table_name;
 		$ret_object = $this->db_select($this->db_escape("SELECT id FROM ".$table_name." ORDER BY id LIMIT ".($row->count-1).",1"));
 		$delete_row_id=$ret_object[0]['id'];
 		echo $delete_row_id;
 		$this->db_exec( "DELETE FROM ".$table_name." WHERE id=".$delete_row_id );	
 	}
-
-//INJEKTIOSUOJA(VALMIS)
 	
 	function db_get_user($user){
 		$usr=$user->username;
-		$hide_array=array(":usr"=>$usr);
-		$ret_object=$this->db_select_esc( "SELECT * FROM Kayttaja WHERE kayttajanimi=:usr", $hide_array );
+		$ret_object=$this->db_select( "SELECT * FROM Kayttaja WHERE kayttajanimi='".$usr."'" );
 		return $ret_object;
 	}
-
-//INJEKTIOSUOJA(VALMIS)
 	
 	function db_get_user_priviledges($user){
 		$usr=$user->username;
-		$hide_array=array(":usr"=>$usr);
-		$ret_object=$this->db_select_esc( "SELECT * FROM Kayttaja JOIN Oikeudet ON Kayttaja.kayttaja_id=Oikeudet.kayttaja_id WHERE kayttajanimi=:usr", $hide_array );
+		$ret_object=$this->db_select( "SELECT * FROM Kayttaja JOIN Oikeudet ON Kayttaja.kayttaja_id=Oikeudet.kayttaja_id WHERE kayttajanimi='".$usr."'" );
 		return $ret_object;
 	}
 
@@ -426,15 +364,11 @@ class Database{
 	function db_destroy_layout($layout){
 		$this->db_exec("DELETE FROM Asetelma WHERE asetelman_nimi='".$layout->name."'");
 	}
-
-//INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)(SQL POIS JS:N PUOLELTA)
 	
 	function db_search($ret_data, $sql){
 		$search_str=$sql . " WHERE ";
 		for($i=0; $i<count($ret_data[0]); $i++){
-			$this->db_check_column($table, $ret_data[0][$i]);
-			$hide_array[':data'.$i]=$ret_data[1][$i];
-			$search_str=$search_str.$ret_data[0][$i]." LIKE :data".$i." ";
+			$search_str=$search_str.$ret_data[0][$i]." LIKE '".$ret_data[1][$i]."'";
 			if( $i<count($ret_data[0])-1 ){
 				$search_str=$search_str."AND";
 			}
@@ -463,23 +397,17 @@ class Database{
 		return count($ret_object);
 	}
 
-//INJEKTIOSUOJA
-
 	function db_check_layout_permission($layout, $user){
 		//$hide_array=array(":user_id"=>$user->user_id, "layout_id"=>$layout->id);
 		//$ret_object=$this->db_select("SELECT * FROM Oikeudet WHERE kayttaja_id=:user_id AND kohde=:layout_id ORDER BY id DESC LIMIT 1", $hide_array);
-		$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout->id);
-		$ret_object=$this->db_select_esc("SELECT * FROM Oikeudet WHERE kayttaja_id=:user_id AND kohde=:layout_id ORDER BY oikeus_id DESC LIMIT 1", $hide_array);
+		$ret_object=$this->db_select("SELECT * FROM Oikeudet WHERE kayttaja_id=".$user->user_id." AND kohde=".$layout->id." ORDER BY oikeus_id DESC LIMIT 1");
 		return $ret_object;
 	}
-
-//INJEKTIOSUOJA
 
 	function db_check_admin($user){
 		//$hide_array=array(":user_id"=>$user->user_id, "layout_id"=>$layout->id);
 		//$ret_object=$this->db_select("SELECT * FROM Oikeudet WHERE kayttaja_id=:user_id AND kohde=:layout_id ORDER BY id DESC LIMIT 1", $hide_array);
-		$hide_array=array(":user_id"=>$user->user_id);
-		$ret_object=$this->db_select_esc("SELECT * FROM Oikeudet WHERE kayttaja_id=:user_id ORDER BY oikeus_id DESC LIMIT 1", $hide_array);
+		$ret_object=$this->db_select("SELECT * FROM Oikeudet WHERE kayttaja_id=".$user->user_id." ORDER BY oikeus_id DESC LIMIT 1");
 		return $ret_object;
 	}
 

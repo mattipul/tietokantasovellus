@@ -50,7 +50,7 @@ class Xml{
 			$data=$text->data[$laskuri];
 			$laskuri++;
 		}
-		$ret=$ret."<d/div>";
+		$ret=$ret."</div>";
 		return $ret;
 	}
 
@@ -124,7 +124,7 @@ class Xml{
 		foreach ($this->xml_parsed_browse->visuals->section as $div) {
 			$div_style = $div['style'];
 
-			$browse_html="<div style='".$div_style."'>";
+			$browse_html=$browse_html."<div style='".$div_style."'>";
    			$browse_html = $browse_html."".$this->xml_create_text_element_browse($div);
 			$browse_html = $browse_html."".$this->xml_create_image_element_browse($div);
 			$browse_html = $browse_html."".$this->xml_create_table_element_browse($div);
@@ -203,8 +203,8 @@ class Xml{
 			$insert_html = $insert_html."".$this->xml_create_table_element_browse($div);
 			$insert_html = $insert_html."".$this->xml_create_entry_element($div, $i);
 			$insert_html = $insert_html."".$this->xml_create_area_element($div, $i);
-			$insert_html = $insert_html."".$this->xml_create_ok_element($div, $i, $table['to']);
-			$insert_html = $insert_html."".$this->xml_create_delete_element($div, $i, $table['to']);
+			$insert_html = $insert_html."".$this->xml_create_ok_element($div, $i, $table['name']);
+			$insert_html = $insert_html."".$this->xml_create_delete_element($div, $i, $table['name']);
 			$insert_html = $insert_html."</div>";
 		}	
 		return $insert_html;	
@@ -227,7 +227,7 @@ class Xml{
 
 		foreach ($div->searchok as $search_ok) {
 			$search_ok_style = $search_ok['style'];
-			$html=$html."<input onclick='search(this);' data-sqlstatement='".$to."' data-searchidentifier='".$id."' class='insert_button' value='".$search_ok."' type='button' style='".$search_ok_style."'/>";	
+			$html=$html."<input onclick='search(this);' data-searchidentifier='".$id."' class='insert_button' value='".$search_ok."' type='button' style='".$search_ok_style."'/>";	
 			
 		}
 
@@ -297,6 +297,29 @@ class Xml{
 			$i++;
 		}
 		return $arr;
+	}
+
+	function xml_get_sqlstatement_from_identifier($identifier){
+		$sqlstatement="";
+		foreach ($this->xml_parsed_insert->table as $table) {
+			foreach ($table->searchsection as $section) {
+				if( strcmp($section['identifier'], $indetifier) == 0 ){
+					$sqlstatement=$section['sqlstatement'];				
+				}	
+			}
+		}
+		return $sqlstatement;
+	}
+
+	function xml_get_table_from_name($name){
+		$name_str="";
+		foreach ($this->xml_parsed_insert->table as $table) {
+			if( strcmp($table['name'], $name) == 0 ){
+				$name_str=$table['to'];				
+			}	
+		
+		}
+		return $name_str;
 	}
 
 	function print_divs_insert($row){

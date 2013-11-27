@@ -2,18 +2,18 @@
 session_start();
 
 if( empty( $_SESSION['id'] ) ){
-	header("Location: login.php");
+	header("Location: login_auth.php");
 	die();
 }
 
 ini_set('display_errors',1); 
-error_reporting(E_ALL);
+error_reporting(E_ERROR);
 
 require_once("./php/project.php");
 
 $project = new Project;
-$project->project_create_project();
-
+$project->project_create_project($_SESSION['id']);
+$admin=$project->project_is_admin($_SESSION['id']);
 
 ?>
 
@@ -45,7 +45,8 @@ $project->project_create_project();
 
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="./bootstrap/js/bootstrap.min.js"></script>
-    <script src="skripti.js"></script>
+  <?php if($admin==1) {?> <script src="skripti.js"></script><?php } ?>
+  <?php if($admin!=1) {?> <script src="skripti_luku.js"></script><?php } ?>
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
     <!--[if lt IE 9]><script src="../../docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -57,7 +58,7 @@ $project->project_create_project();
     <![endif]-->
   </head>
 
-  <body onload=" do_on_load();">
+  <body onload="do_on_load();">
 
 	    <div class="navbar navbar-inverse navbar-fixed-top" style="height:30px">
 	      <div class="container" s>
@@ -67,9 +68,11 @@ $project->project_create_project();
 		    <span class="icon-bar"></span>
 		    <span class="icon-bar"></span>
 		  </button>
+		 <a style="font-size:18px;float:left;margin:1px;color:rgb(200,200,200)" href="#">Tietokantasovellus</a>
 		</div>
 		<div class="collapse navbar-collapse" style="max-height:30px;">
 		  <ul class="nav navbar-nav" >
+<?php if($admin==1){ ?>
 			<li>
 			  <a data-toggle="dropdown" style="padding:5px;margin-left:5px;" href="#">Tietokanta</a>
 			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" >
@@ -86,14 +89,14 @@ $project->project_create_project();
 			<li>
 			  <a data-toggle="dropdown" style="padding:5px;margin-left:10px;" href="#">Käyttäjät</a>
 			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-			    <li><a class="sis" href="#">Lisää käyttäjä</a></li>
+			    <li><a  data-toggle="modal" data-target="#lisaa_kayttaja" class="sis" href="#">Lisää käyttäjä</a></li>
 			    <hr/>
-			    <li><a class="sis" href="#">Hallitse käyttäjien oikeuksia</a></li>
-			    <li><a class="sis" href="#">Poista käyttäjä</a></li>
+			    <li><a onclick="get_users('#kayttaja_valinta');" data-toggle="modal" data-target="#hallitse_kayttaja" class="sis" href="#">Hallitse käyttäjien oikeuksia</a></li>
+			    <li><a onclick="get_users('#kayttaja_valinta_poisto');" data-toggle="modal" data-target="#poista_kayttaja" class="sis" href="#">Poista käyttäjä</a></li>
 			    <hr/>
 			  </ul>
 			</li>
-
+<?php } ?>
 			<li>
 			  <a data-toggle="dropdown" style="padding:5px;margin-left:10px;" href="#">Apua</a>
 			  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
@@ -130,7 +133,7 @@ $project->project_create_project();
 	<span>Rivi </span><span id="row_span" style="margin:5px;">1</span>
 	</div>
 	</div>
-
+<?php if($admin==1){ ?>
 
 	<div id="uusi_taulu" class="modal fade">
 	  <div class="modal-dialog">
@@ -485,7 +488,84 @@ $project->project_create_project();
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
 
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="lisaa_kayttaja" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Lisää käyttäjä</h4>
+	      </div>
+	      <div class="modal-body">
+			<p style="margin:5px;">Käyttäjänimi:</p><input id="uusi_kayttajanimi" style="width:100%" type="text" />
+			<p style="margin:5px;">Salasana:</p><input id="uusi_salasana1" style="width:100%" type="password" />
+			<p style="margin:5px;">Salasana uudestaan:</p><input id="uusi_salasana2" style="width:100%" type="password" />
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
+		<button type="button" class="btn btn-primary" onclick="add_user()">Lisää</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
 
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="hallitse_kayttaja" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Hallitse käyttäjiä</h4>
+	      </div>
+	      <div class="modal-body">
+			<p>Valitse käyttäjä<select id="kayttaja_valinta" onchange="get_layout_list_tolist('#asetelmien_nimet_kayttaja');"></select></p><hr/>
+			  <div style="width:65%;float:left">
+						<select id="asetelmien_nimet_kayttaja" style="padding:5px;width:100%; height:300px;" size="100">
+						</select>
+					</div>
+					<div style="width:35%;float:right;text-align:right;">
+						<a onclick="layout_read_rights();" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right" ></i> Lukuoikeus</a>
+						<a onclick="layout_write_rights();" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right" ></i> Kirjoitusoikeus</a>
+						<a onclick="layout_notvisible_rights();" style="margin:5px;width:100%" href="#" class="btn btn-default"><i class="icon-chevron-right"></i> Piilota</a>
+					</div>
+					<div style="clear:both"></div>
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
+		<button type="button" class="btn btn-primary" onclick="make_admin()">Tee ylläpitäjäksi</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+			<!------------------>
+	<!------------------>
+	<!------------------>
+	
+	<div id="poista_kayttaja" class="modal fade">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">Poista käyttäjä</h4>
+	      </div>
+	      <div class="modal-body">
+			<p>Valitse käyttäjä<select id="kayttaja_valinta_poisto" ></select></p>
+	      </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
+		<button type="button" class="btn btn-primary" onclick="destroy_user()">Poista</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+<?php } ?>
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->

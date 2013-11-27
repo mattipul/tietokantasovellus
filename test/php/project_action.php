@@ -142,6 +142,10 @@ class Project_action{
 		$layout_name=$layoutObj->name;
 		$this->db->db_destroy_layout($layout_name);
 	}
+	
+	function search($ret_data, $sql){
+		return $this->db->db_search($ret_data, $sql);
+	}
 }
 
 

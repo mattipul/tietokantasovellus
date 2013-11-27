@@ -33,7 +33,7 @@ class Database{
 	}
 
 	function db_escape($sqlstatement){
-		return $sqlstatement;
+		return $this->database->quote($sqlstatement);
 	}
 
 	function db_exec($sqlstatement){
