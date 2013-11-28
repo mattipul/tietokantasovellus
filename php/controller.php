@@ -220,21 +220,25 @@ class Controller{
 	
 	function controller_create_layout($layout_name, $layout_sql){
 		if( $layout_name!=NULL && $layout_sql!=NULL ){
+			$layout_name = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($layout_name))))));
 			$this->controller_check_layout_name($layout_name);
 			$layout=new Layout;
 			$layout->name=$layout_name;
 			$layout->sqlstatement=$layout_sql;
 			$this->db->db_create_layout($layout);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
 	function controller_create_table($table_name, $columns){
 		if( $table_name!=NULL && $columns!=NULL ){
+			$table_name = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($table_name))))));
 			$this->controller_check_table_name($table_name);
 			$table = new Table;
 			$table->table_name=$table_name;
 			$table->table_columns=$columns;
 			$this->db->db_create_table($table);	
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -278,6 +282,7 @@ class Controller{
 			$table_name=$this->xml->xml_get_table_from_name($table);
 
 			$this->set_row($row,$table_name);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -302,6 +307,7 @@ class Controller{
 			$this->xml->xml_parse_insert($layout->xml_insert);
 			$table_name=$this->xml->xml_get_table_from_name($table);
 			$this->delete_row($rowObj, $table_name);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -364,6 +370,7 @@ class Controller{
 			$columnObj->column_name=$column_name;
 			$columnObj->column_type=$column_type;
 			$this->db->db_add_column($columnObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -373,6 +380,7 @@ class Controller{
 			$tableObj=new Table;
 			$tableObj->table_name=$table_name;
 			$this->db->db_change_table_name($tableObj, $new_table_name);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -390,6 +398,7 @@ class Controller{
 			$column_new->column_type=$new_column_type;				
 
 			$this->db->db_change_column_name($column_old, $column_new);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}	
 	}
 	
@@ -399,6 +408,7 @@ class Controller{
 			$columnObj->table_name=$table_name;
 			$columnObj->column_name=$column_name;
 			$this->db->db_destroy_column($columnObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -407,6 +417,7 @@ class Controller{
 			$tableObj=new Table;
 			$tableObj->table_name=$table_name;
 			$this->db->db_destroy_table($tableObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 
@@ -436,6 +447,7 @@ class Controller{
 			$layout_new->name=$new_layout_name;
 
 			$this->db->db_change_layout_name($layout_old, $layout_new);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 	
@@ -447,7 +459,8 @@ class Controller{
 			$layout_old->name=$layout_name;
 			$layout_new->sqlstatement=$sql;
 
-			$this->db->db_change_layout_sql($layout_old, $layout_new);	
+			$this->db->db_change_layout_sql($layout_old, $layout_new);
+			echo 'Toiminto suoritettu onnistuneesti!';	
 		}
 	}
 	
@@ -456,6 +469,7 @@ class Controller{
 			$layoutObj=new Layout;
 			$layoutObj->name=$layout_name;
 			$this->db->db_destroy_layout($layoutObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	
 	}
@@ -480,9 +494,13 @@ class Controller{
 			$this->xml->init_db();
 			$this->xml->xml_parse_insert($layout->xml_insert);
 			$sql=$this->xml->xml_get_sqlstatement_from_identifier($identifier);
+			$columnto=$this->xml->xml_get_changes_to_column_names($identifier);
 
 			$search_results=$this->db->db_search($ret_data, $sql);
-			echo json_encode($search_results->resultsArr);
+
+			$res=array($search_results->resultsArr, $columnto);
+
+			echo json_encode($res);
 		}	
 	}
 
@@ -495,6 +513,7 @@ class Controller{
 				$userObj->hash=$crypted_arr[0];
 				$userObj->salt=$crypted_arr[1];
 				$this->db->db_create_user($userObj);
+				echo 'Toiminto suoritettu onnistuneesti!';
 			}
 		}
 	}
@@ -536,11 +555,12 @@ class Controller{
 			$userObj=new User;
 			$userObj->user_id=$user_id;
 			$layout_list=$this->db->db_get_layouts();
-			$ret_str;
+			$ret_str=array();
 			$c=0;
 			for($i=0; $i<count($layout_list); $i++){
 				if($layout_list[$i]!=NULL){
 					$ret_str[$c]['admin']=0;
+					$ret_str[$c]['permission']=-1;
 					$ret_str[$c]['layout_name']=$layout_list[$i]->name;
 					$ret_str[$c]['layout_id']=$layout_list[$i]->id;
 					$ret_str[$c]['xml_browse']=$layout_list[$i]->xml_browse;
@@ -563,31 +583,43 @@ class Controller{
 
 	function controller_read_rights($layout_id, $user_id){
 		if( $layout_id!=NULL && $user_id!=NULL ){
+			if($this->admin($user_id)==1){
+				die("Käyttäjä on ylläpitäjä!");
+			}
 			$layoutObj=new Layout;
 			$userObj=new User;
 			$layoutObj->id=$layout_id;
 			$userObj->user_id=$user_id;
 			$this->db->db_read_rights($layoutObj, $userObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 
 	function controller_write_rights($layout_id, $user_id){
 		if( $layout_id!=NULL && $user_id!=NULL ){
+			if($this->admin($user_id)==1){
+				die("Käyttäjä on ylläpitäjä!");
+			}
 			$layoutObj=new Layout;
 			$userObj=new User;
 			$layoutObj->id=$layout_id;
 			$userObj->user_id=$user_id;
 			$this->db->db_write_rights($layoutObj, $userObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 
 	function controller_notvisible_rights($layout_id, $user_id){
 		if( $layout_id!=NULL && $user_id!=NULL ){
+			if($this->admin($user_id)==1){
+				die("Käyttäjä on ylläpitäjä!");
+			}
 			$layoutObj=new Layout;
 			$userObj=new User;
 			$layoutObj->id=$layout_id;
 			$userObj->user_id=$user_id;
 			$this->db->db_notvisible_rights($layoutObj, $userObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 
@@ -596,6 +628,7 @@ class Controller{
 			$userObj=new User;
 			$userObj->user_id=$user_id;
 			$this->db->db_make_admin($userObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 
@@ -604,6 +637,7 @@ class Controller{
 			$userObj=new User;
 			$userObj->user_id=$user_id;
 			$this->db->db_destroy_user($userObj);
+			echo 'Toiminto suoritettu onnistuneesti!';
 		}
 	}
 

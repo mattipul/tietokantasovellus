@@ -68,7 +68,7 @@ $admin=$project->project_is_admin($_SESSION['id']);
 		    <span class="icon-bar"></span>
 		    <span class="icon-bar"></span>
 		  </button>
-		 <a style="font-size:18px;float:left;margin:1px;color:rgb(200,200,200)" href="#">Tietokantasovellus</a>
+		 <a style="font-size:17px;float:left;margin:3px;color:rgb(200,200,200)" href="#">Tietokantasovellus</a>
 		</div>
 		<div class="collapse navbar-collapse" style="max-height:30px;">
 		  <ul class="nav navbar-nav" >
@@ -538,7 +538,7 @@ $admin=$project->project_is_admin($_SESSION['id']);
 	      </div>
 	      <div class="modal-footer">
 		<button type="button" class="btn btn-default" data-dismiss="modal">Sulje</button>
-		<button type="button" class="btn btn-primary" onclick="make_admin()">Tee ylläpitäjäksi</button>
+		<button type="button" class="btn btn-primary" onclick="make_admin()">Tee käyttäjästä ylläpitäjä</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->

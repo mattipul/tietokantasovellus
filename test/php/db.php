@@ -38,40 +38,56 @@ class Database{
 	}
 
 	function db_exec($sqlstatement){
-		$sqlstatement_escaped=$this->db_escape($sqlstatement);
-		$mysqlquery = $this->database->prepare($sqlstatement_escaped);
-  		if($mysqlquery->execute() == FALSE){
-			die("Virhe tietokannassa!");
-		}
+		//try {
+			$sqlstatement_escaped=$this->db_escape($sqlstatement);
+			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
+	  		if($mysqlquery->execute() == FALSE){
+				die("Virhe!");
+			}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_select($sqlstatement){
-		$sqlstatement_escaped=$this->db_escape($sqlstatement);
-		$mysqlquery = $this->database->prepare($sqlstatement_escaped);
-  		$ret=$mysqlquery->execute();
-		if($ret==TRUE){		
-			return $mysqlquery->fetchAll();
-		}else{
-			die("Virhe tietokannassa!");
-		}
+		//try{
+			$sqlstatement_escaped=$this->db_escape($sqlstatement);
+			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
+	  		$ret=$mysqlquery->execute();
+			if($ret==TRUE){		
+				return $mysqlquery->fetchAll();
+			}else{
+				die("Virhe!");
+			}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_exec_esc($sqlstatement, $hide_array){
-		$mysqlquery = $this->database->prepare($sqlstatement);
-		$ret=$mysqlquery->execute($hide_array);
-  		if($ret == FALSE){
-			die("Virhe tietokannassa!");
-		}
+		//try{
+			$mysqlquery = $this->database->prepare($sqlstatement);
+			$ret=$mysqlquery->execute($hide_array);
+	  		if($ret == FALSE){
+				die("Virhe!");
+			}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 	
 	function db_select_esc($sqlstatement, $hide_array){
-		$mysqlquery = $this->database->prepare($sqlstatement);
-  		$ret=$mysqlquery->execute($hide_array);
-		if($ret==TRUE){		
-			return $mysqlquery->fetchAll();
-		}else{
-			die("Virhe tietokannassa!");
-		}
+		//try{
+			$mysqlquery = $this->database->prepare($sqlstatement);
+	  		$ret=$mysqlquery->execute($hide_array);
+			if($ret==TRUE){		
+				return $mysqlquery->fetchAll();
+			}else{
+				die("Virhe!");
+			}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_close_connection(){
@@ -82,6 +98,19 @@ class Database{
 	function db_create_table($table){
 		$table_name = $table->table_name;
 		$table_columns = $table->table_columns;
+
+		$columns_sql = "";
+		for($i=0; $i<count($table_columns); $i++){
+			$column=explode(":", $table_columns[$i]);
+			$columns_sql=$columns_sql.$column[0]." ".$column[1];
+			if( $i<count($table_columns)-1 ){
+				$columns_sql=$columns_sql.",";
+			}
+		}
+
+		$columns_sql=$columns_sql.",id int PRIMARY KEY AUTO_INCREMENT";
+		$this->db_exec( "CREATE TABLE ".$table_name." (".$columns_sql.");" );
+
 		$this->db_exec( "INSERT INTO Taulu (taulun_id, taulun_nimi) VALUES ( NULL, '".$table_name."' )" );
 		
 		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu ORDER BY taulun_id DESC LIMIT 1");
@@ -102,9 +131,8 @@ class Database{
 			
 		}
 
-		$columns_sql=$columns_sql.",id int PRIMARY KEY AUTO_INCREMENT";
+		
 
-		return $this->db_exec( "CREATE TABLE ".$table_name." (".$columns_sql.");" );
 	}
 
 	function db_create_layout($layout){
@@ -191,7 +219,7 @@ class Database{
 	function db_get_layouts(){
 		$ret_object = $this->db_select("SELECT * FROM Asetelma");
 
-		$layout_list[]=NULL;
+		$layout_list=array();
 
 		foreach ($ret_object as $layouts_row)
     	{
@@ -261,7 +289,7 @@ class Database{
 		if(!is_numeric($row)){
 			die();
 		}
-		$sqlstatement=$sql." ORDER BY id ASC LIMIT ".($row-1).",1";
+		$sqlstatement=$sql." LIMIT ".($row-1).",1";
 		$sqlstatement_escaped=$sqlstatement;
 		//echo $sqlstatement;
 		$ret_object = $this->db_select($sqlstatement_escaped);
@@ -295,6 +323,24 @@ class Database{
 		}
 	}
 
+	function db_check_column_sql($sql, $column_name){
+		$ret_object=$this->db_select($sql);		
+		if(isset($ret_object[0][$column_name])==FALSE){
+			die($sql);
+		}
+	}
+
+	function db_check_column_if_int($table, $column_name){
+		$hide_array=array(":column_name"=>$column_name);
+		$ret_object=$this->db_select_esc("SHOW COLUMNS FROM ".$table->table_name." LIKE :column_name", $hide_array);		
+		if( strstr($ret_objet[0]['type'], "int")!=FALSE ){
+			return 1;
+		}else{
+			return 0;
+		}
+	
+	}
+
 //INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)VALMIS
 
 
@@ -308,6 +354,10 @@ class Database{
 		$update_str="UPDATE ".$table_name." SET ";
 		for($i=0; $i<count($row->row_keys); $i++){
 			$this->db_check_column($table, $row->row_keys[$i]);
+			
+			if($this->db_check_column_if_int($table, $row->row_keys[$i]) == 1){
+				$row->row_keys[$i]=intval($row->row_keys[$i]);
+			}
 			$hide_array[':data'.$i]=$row->row_data[$i];
 			$update_str=$update_str.$row->row_keys[$i]."=:data".$i." ";
 			if( $i < count( $row->row_keys )-1 ){
@@ -379,15 +429,15 @@ class Database{
 	function db_add_column($column){	
 		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$column->table_name."'");
 		$table_id=$ret_object[0]['taulun_id'];
-		$this->db_exec("INSERT INTO Sarake (sarakkeen_id, taulun_id, sarakkeen_nimi, sarakkeen_tyyppi) VALUES (NULL, '".$table_id."', '".$column->column_name."', '".$column->column_type."')");
 		$this->db_exec("ALTER TABLE ".$column->table_name." ADD ".$column->column_name." ".$column->column_type." ");
+		$this->db_exec("INSERT INTO Sarake (sarakkeen_id, taulun_id, sarakkeen_nimi, sarakkeen_tyyppi) VALUES (NULL, '".$table_id."', '".$column->column_name."', '".$column->column_type."')");
 	}
 
 	function db_change_table_name($table, $new_table_name){
 		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table->table_name."'");
 		$table_id=$ret_object[0]['taulun_id'];
-		$this->db_exec("UPDATE Taulu SET taulun_nimi='".$new_table_name."' WHERE taulun_id=".$table_id);
 		$this->db_exec("ALTER TABLE ".$table->table_name." RENAME ".$new_table_name.";");
+		$this->db_exec("UPDATE Taulu SET taulun_nimi='".$new_table_name."' WHERE taulun_id=".$table_id);
 	}
 
 	function db_change_column_name($column, $new_column){
@@ -395,8 +445,8 @@ class Database{
 		$table_id=$ret_object[0]['taulun_id'];
 		$ret_object = $this->db_select("SELECT sarakkeen_id FROM Sarake WHERE taulun_id='".$table_id."' AND sarakkeen_nimi='".$column->column_name."'");
 		$column_id=$ret_object[0]['sarakkeen_id'];
-		$this->db_exec("UPDATE Sarake SET sarakkeen_nimi='".$new_column->column_name."', sarakkeen_tyyppi='".$new_column->column_type."' WHERE sarakkeen_id=".$column_id);
 		$this->db_exec("ALTER TABLE ".$column->table_name." CHANGE ".$column->column_name." ".$new_column->column_name." ".$new_column->column_type.";");
+		$this->db_exec("UPDATE Sarake SET sarakkeen_nimi='".$new_column->column_name."', sarakkeen_tyyppi='".$new_column->column_type."' WHERE sarakkeen_id=".$column_id);
 	}
 
 	function db_destroy_column($column){
@@ -404,15 +454,15 @@ class Database{
 		$table_id=$ret_object[0]['taulun_id'];
 		$ret_object = $this->db_select("SELECT sarakkeen_id FROM Sarake WHERE taulun_id='".$table_id."' AND sarakkeen_nimi='".$column->column_name."'");
 		$column_id=$ret_object[0]['sarakkeen_id'];
-		$this->db_exec("DELETE FROM Sarake WHERE sarakkeen_id=".$column_id);
 		$this->db_exec("ALTER TABLE ".$column->table_name." DROP COLUMN ".$column->column_name);
+		$this->db_exec("DELETE FROM Sarake WHERE sarakkeen_id=".$column_id);
 	}
 
 	function db_destroy_table($table){
 		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$table->table_name."'");
 		$table_id=$ret_object[0]['taulun_id'];
-		$this->db_exec("DELETE FROM Taulu WHERE taulun_id=".$table_id);
 		$this->db_exec("DROP TABLE ".$table->table_name);
+		$this->db_exec("DELETE FROM Taulu WHERE taulun_id=".$table_id);
 	}
 
 	function db_change_layout_name($layout, $new_layout){
@@ -431,15 +481,17 @@ class Database{
 	
 	function db_search($ret_data, $sql){
 		$search_str=$sql . " WHERE ";
+		$hide_array=array();
 		for($i=0; $i<count($ret_data[0]); $i++){
-			$this->db_check_column($table, $ret_data[0][$i]);
+			//$this->db_check_column($table, $ret_data[0][$i]);
+			$this->db_check_column_sql($sql, $ret_data[0][$i]);
 			$hide_array[':data'.$i]=$ret_data[1][$i];
 			$search_str=$search_str.$ret_data[0][$i]." LIKE :data".$i." ";
 			if( $i<count($ret_data[0])-1 ){
 				$search_str=$search_str."AND";
 			}
 		}
-		$ret_object=$this->db_select( $search_str );
+		$ret_object=$this->db_select_esc( $search_str,$hide_array );
 		$search_results=new SearchResults;
 		$search_results->resultsArr=$ret_object;
 		$search_results->sqlstatement=$search_str;

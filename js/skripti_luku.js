@@ -146,40 +146,49 @@ function set_html_insert(layout_id, data){
 	insert_divs=insert_divs+"</div>";
 
 	insert_div.innerHTML=insert_tabs+insert_divs;
+	c=0;
 	for(var i=2; i<data.length; i+=3){
-		set_column_data_insert(data[i]);
+		set_column_data_insert(data[i],c);
+		c++;
 	}
 }
-
 function set_column_data(layout_id, data){
 	if(data!==undefined){
 	var a_node=data[0];
 	var laskuri=0;
 	var keys=Object.keys(data);
 	while(a_node!==undefined){
-		$("."+keys[((keys.length/2)+laskuri)]).each(function( index ) {
+		
+		$("."+keys[laskuri]).each(function( index ) {
 			$( this ).html(a_node) ;
+			
 		});
+		
 
 		laskuri++;
-		a_node=data[laskuri];
+		a_node=data[keys[laskuri]];
 	}
 	}
 }
 
-function set_column_data_insert(data){
+function set_column_data_insert(data,c){
 	if(data!==undefined){
-	var a_node=data[0];
-	var laskuri=0;
-	var keys=Object.keys(data);
-	while(a_node!==undefined){
-		$(".insert_entry_"+keys[((keys.length/2)+laskuri)]).each(function( index ) {
-			$( this ).val(a_node) ;
-		});
+			var a_node=data[0];
+			var laskuri=0;
+			var keys=Object.keys(data);
+			//alert(c+" "+JSON.stringify(data));
+	
+			while(a_node!==undefined){
+				//alert(c+" "+$("#"+current_layout_id+"inserter"+c).html());
+				$("#"+current_layout_id+"inserter"+c).children().find(".insert_entry_"+keys[((keys.length/2)+laskuri)]).each(function( index ) {
+					$( this ).val(a_node) ;
+				});
 
-		laskuri++;
-		a_node=data[laskuri];
-	}
+
+
+				laskuri++;
+				a_node=data[laskuri];
+			}
 	}
 }
 
@@ -239,27 +248,37 @@ function search(painike){
 		}
 	});
 	
-	
+	results.innerHTML="";
 	$.post( "php/handle_post.php", { type:21, layout_id:current_layout_id, identifier: $(painike).data("searchidentifier"), data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
+
 		var results_data = jQuery.parseJSON( data );
 
-		var keys1=Object.keys(results_data[0]);
+		var keys1=Object.keys(results_data[0][0]);
 		var tablehtml;
 		tablehtml="<div style='display:table;width:100%;table-layout: fixed;'><table width='100%'><tr>";
 
 		for(var j=keys1.length/2; j<keys1.length; j++){
-			tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+			try{
+				if(results_data[1][keys1[j]][0]!==undefined){
+					tablehtml=tablehtml+"<td class='search_tab'>"+results_data[1][keys1[j]][0]+"</span></td>";
+				}
+				if(results_data[1][keys1[j]][0]===undefined){
+					tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+				}
+			}catch(e){
+				tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+			}
 		}
 		
 		tablehtml=tablehtml+"</tr>";
 		
-		for(var i=0; i<results_data.length; i++){
-			var keys=Object.keys(results_data[i]);
+		for(var i=0; i<results_data[0].length; i++){
+			var keys=Object.keys(results_data[0][i]);
 			tablehtml=tablehtml+"<tr>";
 			for(var j=keys.length/2; j<keys.length; j++){
 				//alert(results_data[i].asetelman_nimi);
-				tablehtml=tablehtml+"<td class='search_tab_b'><span>"+htmlEntities(results_data[i][keys[j]]).substring(0,20)+"...</span><span style='display:none'>"+htmlEntities(results_data[i][keys[j]]).substring(20,htmlEntities(results_data[i][keys[j]]).length)+"</span></td>";
+				tablehtml=tablehtml+"<td class='search_tab_b'><span>"+htmlEntities(results_data[0][i][keys[j]]).substring(0,20)+"...</span><span style='display:none'>"+htmlEntities(results_data[0][i][keys[j]]).substring(20,htmlEntities(results_data[0][i][keys[j]]).length)+"</span></td>";
 			}
 			tablehtml=tablehtml+"</tr>";
 		}
@@ -267,9 +286,8 @@ function search(painike){
 		tablehtml=tablehtml+"</table></div>";
 		
 		results.innerHTML=tablehtml;
-		
+	
 	});
 	
 }
-
 

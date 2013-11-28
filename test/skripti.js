@@ -7,6 +7,7 @@ current_layout.sqlstatement="";
 var current_row_id=1;
 var current_layout_id=1;
 var current_insid_id=0;
+var current_inserter_count;
 
 function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -85,6 +86,7 @@ function set_current_layout(id){
 	
 	$.post( "php/handle_post.php", { type:3, layout_id: current_layout_id, row: 1})
 	.done(function(data ) {
+
 		var asetelma = jQuery.parseJSON( data );	
 		current_layout.name=asetelma[1].name;
 		current_layout.sqlstatement=asetelma[1].sqlstatement;
@@ -209,6 +211,7 @@ function set_xml_insert_data(layout_id, data){
 function set_html_browse(layout_id, data){
 	var browse_div=document.getElementById('arkisto'+layout_id);
 	browse_div.innerHTML=data;
+
 }
 
 function set_html_insert(layout_id, data){
@@ -229,11 +232,16 @@ function set_html_insert(layout_id, data){
 		c++;
 		//set_column_data_insert(data[i+2][0]);
 	}
+	current_inserter_count=c;
 	insert_divs=insert_divs+"</div>";
 
 	insert_div.innerHTML=insert_tabs+insert_divs;
+
+	c=0;
 	for(var i=2; i<data.length; i+=3){
-		set_column_data_insert(data[i]);
+
+		set_column_data_insert(data[i],c);
+		c++;
 	}
 }
 
@@ -243,29 +251,37 @@ function set_column_data(layout_id, data){
 	var laskuri=0;
 	var keys=Object.keys(data);
 	while(a_node!==undefined){
-		$("."+keys[((keys.length/2)+laskuri)]).each(function( index ) {
+		
+		$("."+keys[laskuri]).each(function( index ) {
 			$( this ).html(a_node) ;
+			
 		});
+		
 
 		laskuri++;
-		a_node=data[laskuri];
+		a_node=data[keys[laskuri]];
 	}
 	}
 }
 
-function set_column_data_insert(data){
+function set_column_data_insert(data,c){
 	if(data!==undefined){
-	var a_node=data[0];
-	var laskuri=0;
-	var keys=Object.keys(data);
-	while(a_node!==undefined){
-		$(".insert_entry_"+keys[((keys.length/2)+laskuri)]).each(function( index ) {
-			$( this ).val(a_node) ;
-		});
+			var a_node=data[0];
+			var laskuri=0;
+			var keys=Object.keys(data);
+			//alert(c+" "+JSON.stringify(data));
+	
+			while(a_node!==undefined){
+				//alert(c+" "+$("#"+current_layout_id+"inserter"+c).html());
+				$("#"+current_layout_id+"inserter"+c).children().find(".insert_entry_"+keys[((keys.length/2)+laskuri)]).each(function( index ) {
+					$( this ).val(a_node) ;
+				});
 
-		laskuri++;
-		a_node=data[laskuri];
-	}
+
+
+				laskuri++;
+				a_node=data[laskuri];
+			}
 	}
 }
 
@@ -286,14 +302,14 @@ function insert_data_to_database(painike, insid){
 	});
 	$.post( "php/handle_post.php", { type:6, layout_id:current_layout_id, table: $(painike).data("table"), row: current_row_id, data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
-		alert(data);
+		//alert(data);
 	});
 }
 
 function delete_data_from_database(painike, insid){
 	$.post( "php/handle_post.php", { type:7,layout_id:current_layout_id, table: $(painike).data("table"), row: current_row_id })
 	.done(function(data ) {
-		alert(data);
+		//alert(data);
 	});
 }
 
@@ -449,27 +465,37 @@ function search(painike){
 		}
 	});
 	
-	
+	results.innerHTML="";
 	$.post( "php/handle_post.php", { type:21, layout_id:current_layout_id, identifier: $(painike).data("searchidentifier"), data_keys:post_string_keys.toString(), data_data:post_string_data.toString(), data_lengths:post_string_lengths.toString() })
 	.done(function(data ) {
+
 		var results_data = jQuery.parseJSON( data );
 
-		var keys1=Object.keys(results_data[0]);
+		var keys1=Object.keys(results_data[0][0]);
 		var tablehtml;
 		tablehtml="<div style='display:table;width:100%;table-layout: fixed;'><table width='100%'><tr>";
 
 		for(var j=keys1.length/2; j<keys1.length; j++){
-			tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+			try{
+				if(results_data[1][keys1[j]][0]!==undefined){
+					tablehtml=tablehtml+"<td class='search_tab'>"+results_data[1][keys1[j]][0]+"</span></td>";
+				}
+				if(results_data[1][keys1[j]][0]===undefined){
+					tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+				}
+			}catch(e){
+				tablehtml=tablehtml+"<td class='search_tab'>"+keys1[j]+"</span></td>";
+			}
 		}
 		
 		tablehtml=tablehtml+"</tr>";
 		
-		for(var i=0; i<results_data.length; i++){
-			var keys=Object.keys(results_data[i]);
+		for(var i=0; i<results_data[0].length; i++){
+			var keys=Object.keys(results_data[0][i]);
 			tablehtml=tablehtml+"<tr>";
 			for(var j=keys.length/2; j<keys.length; j++){
 				//alert(results_data[i].asetelman_nimi);
-				tablehtml=tablehtml+"<td class='search_tab_b'><span>"+htmlEntities(results_data[i][keys[j]]).substring(0,20)+"...</span><span style='display:none'>"+htmlEntities(results_data[i][keys[j]]).substring(20,htmlEntities(results_data[i][keys[j]]).length)+"</span></td>";
+				tablehtml=tablehtml+"<td class='search_tab_b'><span>"+htmlEntities(results_data[0][i][keys[j]]).substring(0,20)+"...</span><span style='display:none'>"+htmlEntities(results_data[0][i][keys[j]]).substring(20,htmlEntities(results_data[0][i][keys[j]]).length)+"</span></td>";
 			}
 			tablehtml=tablehtml+"</tr>";
 		}
@@ -477,7 +503,7 @@ function search(painike){
 		tablehtml=tablehtml+"</table></div>";
 		
 		results.innerHTML=tablehtml;
-		
+	
 	});
 	
 }
@@ -493,7 +519,7 @@ function get_users(list){
 	$(list).html("<option></option>");
 	$.post( "php/handle_post.php", { type:23})
 	.done(function(data ) {
-alert(data);
+//alert(data);
 		var users = jQuery.parseJSON( data );
 			for(var i=0; i<users.length; i++){
 				if(users[i] !== undefined){
@@ -506,27 +532,27 @@ alert(data);
 
 function get_layout_list_tolist(id){
 	$(id).html("");
-	alert($("#kayttaja_valinta").val());
+	//alert($("#kayttaja_valinta").val());
 	$.post( "php/handle_post.php", { type:24,user_id:$("#kayttaja_valinta").val() })
 	.done(function(data ) {
-	alert(data);
+	//alert(data);
 			var layouts = jQuery.parseJSON( data );
 			for(var i=0; i<layouts.length; i++){
 				if(layouts[i] !== undefined){
 					var class_perm;					
 					if(layouts[i].permission===undefined ||( layouts[i].admin!=1 && layouts[i].permission==-1 )){
-						class_perm="layout_notvisible";
+						class_perm="Piilotettu";
 					}
 					if(layouts[i].admin==1){
-						class_perm="layout_admin";
+						class_perm="Ylläpitäjä";
 					}
 					if(layouts[i].permission==1){
-						class_perm="layout_write";
+						class_perm="Kirjoitusoikeudet";
 					}
 					if(layouts[i].permission==2){
-						class_perm="layout_read";
+						class_perm="Lukuoikeudet";
 					}
-					$(id).html( $(id).html() + "<option class='"+class_perm+"' value='"+layouts[i].layout_id+"'>"+layouts[i].layout_name+"</option>" );
+					$(id).html( $(id).html() + "<option value='"+layouts[i].layout_id+"'>"+layouts[i].layout_name+"("+class_perm+")</option>" );
 				}
 			}
 	});

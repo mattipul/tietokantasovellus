@@ -191,8 +191,8 @@ class Handle_post{
 				$data_data=$_POST['data_data'];
 				$data_lengths=$_POST['data_lengths'];
 				$identifier=$_POST['identifier'];
-				$layout_id=$_PSOT['layout_id'];
-				$this->controller->controller_search($data_keys, $data_data, $data_lengths, $sql, $layout_id);
+				$layout_id=$_POST['layout_id'];
+				$this->controller->controller_search($data_keys, $data_data, $data_lengths, $identifier, $layout_id);
 			}
 		
 			if( $type == 22 ){

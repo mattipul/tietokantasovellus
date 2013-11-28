@@ -58,7 +58,6 @@ class Project{
 					<button type="button" class="btn btn-default" onclick="next();"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
 
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
-					<button type="button" class="btn btn-default" onclick="refresh();"><span class="glyphicon glyphicon-refresh"></span></button>
 				</div>
 				</div>
 				<div id="yllapito'.$layout_id.'" class="yllapito">
@@ -80,7 +79,6 @@ class Project{
 					<button type="button" class="btn btn-default" onclick="next();"><span class="glyphicon glyphicon-circle-arrow-right"></span></button>
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(2,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Ylläpito</button>
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
-					<button type="button" class="btn btn-default" onclick="refresh();"><span class="glyphicon glyphicon-refresh"></span></button>
 				</div>
 				</div>
 

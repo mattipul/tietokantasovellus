@@ -197,7 +197,7 @@ class Xml{
 		foreach ($table->section as $div) {
 			$div_style = $div['style'];
 
-			$insert_html="<div style='".$div_style."'>";
+			$insert_html=$insert_html."<div style='".$div_style."'>";
    			$insert_html = $insert_html."".$this->xml_create_text_element_browse($div);
 			$insert_html = $insert_html."".$this->xml_create_image_element_browse($div);
 			$insert_html = $insert_html."".$this->xml_create_table_element_browse($div);
@@ -303,13 +303,28 @@ class Xml{
 		$sqlstatement="";
 		foreach ($this->xml_parsed_insert->table as $table) {
 			foreach ($table->searchsection as $section) {
-				if( strcmp($section['identifier'], $indetifier) == 0 ){
+				if( strcmp($section['identifier'], $identifier) == 0 ){
 					$sqlstatement=$section['sqlstatement'];				
 				}	
 			}
 		}
 		return $sqlstatement;
 	}
+
+	function xml_get_changes_to_column_names($identifier){
+		$changes=array();
+		foreach ($this->xml_parsed_insert->table as $table) {
+			foreach ($table->searchresult as $section) {
+				if( strcmp($section['identifier'], $identifier) == 0 ){
+					foreach ($section->change as $change) {
+						$changes[ "".$change['from'] ] = $change['to'];
+					}				
+				}	
+			}
+		}
+		return $changes;
+	}
+
 
 	function xml_get_table_from_name($name){
 		$name_str="";
