@@ -261,14 +261,15 @@ class Controller{
 			$data_keys_arr=explode(",", $data_keys);
 			$data_lengths_arr=explode(",", $data_lengths);
 			$data_data_arr;
-			var_dump($data_lengths_arr);
-			var_dump($data_data);
 			$c=0;
 			for($i=0; $i<count($data_lengths_arr); $i++){
 				$data_data_arr[]=mb_substr($data_data, $c, $data_lengths_arr[$i]);
-				echo mb_substr($data_data, $c, $data_lengths_arr[$i]) ." ".$data_lengths_arr[$i]."|";
-				$c=$data_lengths_arr[$i]+1;
+				//echo mb_substr($data_data, $c, $data_lengths_arr[$i]) ." ".$data_lengths_arr[$i]."|";
+				$c+=$data_lengths_arr[$i]+1;
 			}
+			//echo $data_data;
+			//var_dump($data_lengths_arr);
+			//var_dump($data_data_arr);
 
 			$row=new Row;
 			$row->row_keys=$data_keys_arr;
