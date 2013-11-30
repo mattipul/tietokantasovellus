@@ -28,6 +28,7 @@ class Project{
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
 					<button type="button" class="btn btn-default" onclick="refresh();"><span class="glyphicon glyphicon-refresh"></span></button>
 				</div>
+				<button type="button" style="float:right" class="btn btn-default" onclick="fullscreen(\''.$layout_name.'\');"><span class="glyphicon glyphicon-fullscreen"></span></button>
 				</div>
 
 				<div id="arkisto-xml'.$layout_id.'" class="arkisto-xml">
@@ -59,6 +60,8 @@ class Project{
 
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
 				</div>
+				<button type="button" style="float:right" class="btn btn-default" onclick="fullscreen(\''.$layout_name.'\');"><span class="glyphicon glyphicon-fullscreen"></span></button>
+				
 				</div>
 				<div id="yllapito'.$layout_id.'" class="yllapito">
 				</div>
@@ -81,7 +84,8 @@ class Project{
 					<button type="button" class="btn btn-default" onclick="avaa_valilehti(3,'.$layout_id.')"><span class="glyphicon glyphicon-book"></span> Arkisto</button>
 				</div>
 				</div>
-
+				<button type="button" style="float:right" class="btn btn-default" onclick="fullscreen(\''.$layout_name.'\');"><span class="glyphicon glyphicon-fullscreen"></span></button>
+						
 				<div id="yllapito'.$layout_id.'" class="yllapito">
 				</div>
 				<div id="arkisto'.$layout_id.'" class="arkisto">

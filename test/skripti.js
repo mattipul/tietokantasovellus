@@ -9,8 +9,41 @@ var current_layout_id=1;
 var current_insid_id=0;
 var current_inserter_count;
 
+var is_fullscreen=0;
+
 function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function fullscreen(id){
+	if(is_fullscreen==0){
+		$("#peitto").show();
+		$("#"+id).removeAttr("style");
+		$("#"+id).css("position", "absolute");
+		$("#"+id).css("zIndex", "1000");
+		$("#"+id).css("top", "0px");
+		$("#"+id).css("left", "0px");
+		$("#"+id).css("width", "100%");
+		
+		   var height_layout = document.getElementById('status').offsetTop; 
+		$('#xml-area-arkisto'+current_layout_id).height( height_layout-60 );
+		$('#xml-area-yllapito'+current_layout_id).height( height_layout-60 );
+		$('#arkisto'+current_layout_id).height( height_layout- 60 );
+		$('#yllapito'+current_layout_id).height( height_layout - 60);
+		$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-60 );
+		is_fullscreen=1;
+	}else{
+		$("#peitto").hide();
+		$("#"+id).removeAttr("style");
+		//$("#"+id).attr("class", "tab-pane");
+		is_fullscreen=0;
+		 var height_layout = document.getElementById('status').offsetTop - 130; 
+		$('#xml-area-arkisto'+current_layout_id).height( height_layout );
+		$('#xml-area-yllapito'+current_layout_id).height( height_layout );
+		$('#arkisto'+current_layout_id).height( height_layout );
+		$('#yllapito'+current_layout_id).height( height_layout );
+		$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
+	}
 }
 
 window.onresize = function(event) {
@@ -19,6 +52,16 @@ window.onresize = function(event) {
 	$('#xml-area-yllapito'+current_layout_id).height( height_layout );
 	$('#arkisto'+current_layout_id).height( height_layout );
 	$('#yllapito'+current_layout_id).height( height_layout );
+	$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
+	
+			if(is_fullscreen==1){	
+			var height_layout = document.getElementById('status').offsetTop; 
+			$('#xml-area-arkisto'+current_layout_id).height( height_layout-60 );
+			$('#xml-area-yllapito'+current_layout_id).height( height_layout-60 );
+			$('#arkisto'+current_layout_id).height( height_layout- 60 );
+			$('#yllapito'+current_layout_id).height( height_layout - 60);
+			$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-60 );
+		}
 }
 
 function do_on_load(){
@@ -103,6 +146,7 @@ function set_current_layout(id){
 	$('#xml-area-yllapito'+current_layout_id).height( height_layout );
 	$('#arkisto'+current_layout_id).height( height_layout );
 	$('#yllapito'+current_layout_id).height( height_layout );
+	$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
 }
 
 function display_to(id, attr){
@@ -225,10 +269,10 @@ function set_html_insert(layout_id, data){
 	}
 	insert_tabs=insert_tabs+"</ul>";
 
-	var insert_divs='<div class="tab-content">';
+	var insert_divs='<div id="'+current_layout_id+'tabcontent" class="tab-content">';
 	c=0;
 	for(var i=0; i<data.length; i+=3){
-		insert_divs=insert_divs+'<div class="tab-pane" id="'+current_layout_id+'inserter'+c+'">'+data[i]+'</div>';
+		insert_divs=insert_divs+'<div style="overflow:scroll" class="tab-pane" id="'+current_layout_id+'inserter'+c+'">'+data[i]+'</div>';
 		c++;
 		//set_column_data_insert(data[i+2][0]);
 	}
@@ -236,7 +280,7 @@ function set_html_insert(layout_id, data){
 	insert_divs=insert_divs+"</div>";
 
 	insert_div.innerHTML=insert_tabs+insert_divs;
-
+	$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
 	c=0;
 	for(var i=2; i<data.length; i+=3){
 
@@ -253,8 +297,11 @@ function set_column_data(layout_id, data){
 	while(a_node!==undefined){
 		
 		$("."+keys[laskuri]).each(function( index ) {
-			$( this ).html(a_node) ;
-			
+			if($(this).is("img")){
+				$(this).attr("src", a_node);
+			}else{
+				$( this ).html(a_node) ;
+			}
 		});
 		
 
@@ -461,20 +508,25 @@ function search(painike){
 	var post_string_keys=new Array();
 	var post_string_data=new Array();
 	var post_string_lengths=new Array();
-	var identifier="";
+	var identifier=$(painike).data("searchidentifier");
 	var results;
-	$( ".search_section_div" ).each(function() {
-		identifier=$(this).data("searchidentifier");
-		$(this).children("input:text").each(function() {
-			post_string_keys.push($(this).attr("class").substring(13));
-			post_string_data.push($(this).val());
-			post_string_lengths.push($(this).val().length);
-		});
+	$( '#yllapito'+current_layout_id).find('*').each(function() {
+		if( $(this).attr("class") === "search_section_div" ){
+				$(this).children("input:text").each(function() {
+					if( $(this).data("searchidentifier") === identifier ){
+						post_string_keys.push($(this).attr("class").substring(13));
+						post_string_data.push($(this).val());
+						post_string_lengths.push($(this).val().length);
+					}
+				});
+		}
 	});
 	
-	$( ".search_results_div" ).each(function() {
-		if( $(this).data("searchidentifier") === identifier ){
-			results=this;
+	$( '#yllapito'+current_layout_id).find('*').each(function() {
+		if( $(this).attr("class") === "search_results_div" ){
+			if( $(this).data("searchidentifier") === identifier ){
+				results=this;
+			}
 		}
 	});
 	

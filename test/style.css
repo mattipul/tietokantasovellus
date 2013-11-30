@@ -8,6 +8,20 @@ body {
 	width:100%;
 	height:100%;
 	background-color:rgb(250,250,250);
+	overflow:hidden;
+}
+
+.modal-content{
+	background-color:rgb(250,250,250);
+}
+
+#peitto{
+	width:100%;
+	height:100%;
+	position:fixed;
+	z-index:99;
+	background-color:rgb(255,255,255);
+	display:none;
 }
 
 
@@ -74,6 +88,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefefe', end
 	height:30px;
 	position:absolute;
 	top:100%;
+	z-index:1000;
 	margin-top:-30px;
 background: #fefefe; /* Old browsers */
 background: -moz-linear-gradient(top,  #fefefe 0%, #f6f6f6 17%, #f1f1f1 32%, #eaeaea 100%); /* FF3.6+ */
@@ -144,6 +159,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	border-style:solid;
 	border-width:1px;
 	background-color:rgb(255,255,255);
+	overflow:scroll;
 }
 
 .xml-area{
@@ -166,3 +182,5 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 .layout_read{
 	color:orange;
 }
+
+.btn-custom { background-color: hsl(0, 0%, 79%) !important; background-repeat: repeat-x; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#134134134", endColorstr="#c9c9c9"); background-image: -khtml-gradient(linear, left top, left bottom, from(#134134134), to(#c9c9c9)); background-image: -moz-linear-gradient(top, #134134134, #c9c9c9); background-image: -ms-linear-gradient(top, #134134134, #c9c9c9); background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #134134134), color-stop(100%, #c9c9c9)); background-image: -webkit-linear-gradient(top, #134134134, #c9c9c9); background-image: -o-linear-gradient(top, #134134134, #c9c9c9); background-image: linear-gradient(#134134134, #c9c9c9); border-color: #c9c9c9 #c9c9c9 hsl(0, 0%, 68.5%); color: #333 !important; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.69); -webkit-font-smoothing: antialiased; }

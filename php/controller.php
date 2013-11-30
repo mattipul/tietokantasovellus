@@ -177,7 +177,7 @@ class Controller{
 				echo '0';
 			}
 		}else{
-			echo '0';
+			die("Virhe!");
 		}
 	
 	}
@@ -201,7 +201,7 @@ class Controller{
 				echo json_encode($json_return);
 			}
 		}else{
-			echo $layout_id.",". $layout_name.",". $layout_sqlstatement.",". $xml_browse.",". $xml_insert.",". $row;
+			die("Virhe!");
 		}
 	}
 	
@@ -215,6 +215,8 @@ class Controller{
 			$rowObj=$this->db->db_get_row($row, $layout->sqlstatement);
 			$json_return[]=$this->print_row_arr($rowObj);
 			echo json_encode($json_return);
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -227,6 +229,8 @@ class Controller{
 			$layout->sqlstatement=$layout_sql;
 			$this->db->db_create_layout($layout);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -239,6 +243,8 @@ class Controller{
 			$table->table_columns=$columns;
 			$this->db->db_create_table($table);	
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -261,14 +267,15 @@ class Controller{
 			$data_keys_arr=explode(",", $data_keys);
 			$data_lengths_arr=explode(",", $data_lengths);
 			$data_data_arr;
-			var_dump($data_lengths_arr);
-			var_dump($data_data);
 			$c=0;
 			for($i=0; $i<count($data_lengths_arr); $i++){
 				$data_data_arr[]=mb_substr($data_data, $c, $data_lengths_arr[$i]);
-				echo mb_substr($data_data, $c, $data_lengths_arr[$i]) ." ".$data_lengths_arr[$i]."|";
-				$c=$data_lengths_arr[$i]+1;
+				//echo mb_substr($data_data, $c, $data_lengths_arr[$i]) ." ".$data_lengths_arr[$i]."|";
+				$c+=$data_lengths_arr[$i]+1;
 			}
+			//echo $data_data;
+			//var_dump($data_lengths_arr);
+			//var_dump($data_data_arr);
 
 			$row=new Row;
 			$row->row_keys=$data_keys_arr;
@@ -283,6 +290,8 @@ class Controller{
 
 			$this->set_row($row,$table_name);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -308,6 +317,8 @@ class Controller{
 			$table_name=$this->xml->xml_get_table_from_name($table);
 			$this->delete_row($rowObj, $table_name);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -323,6 +334,8 @@ class Controller{
 			}else{
 				echo '0';
 			}
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -346,20 +359,24 @@ class Controller{
 	}
 	
 	function controller_get_column_list($table_name){
-		$tableObj=new Table;
-		$tableObj->table_name=$table_name;
-		$column_list=$this->db->db_get_table_columns_by_name($tableObj->table_name);
+		if($table_name!=NULL){
+			$tableObj=new Table;
+			$tableObj->table_name=$table_name;
+			$column_list=$this->db->db_get_table_columns_by_name($tableObj->table_name);
 
-		$ret_str;
-		$c=0;
-		for($i=0; $i<count($column_list); $i++){
-			if($table_list[$i]!=NULL){
-				$ret_str[$c]['column_name']=$column_list[$i]->column_name;
-				$ret_str[$c]['column_type']=$column_list[$i]->column_type;
-				$c++;
+			$ret_str;
+			$c=0;
+			for($i=0; $i<count($column_list); $i++){
+				if($table_list[$i]!=NULL){
+					$ret_str[$c]['column_name']=$column_list[$i]->column_name;
+					$ret_str[$c]['column_type']=$column_list[$i]->column_type;
+					$c++;
+				}
 			}
+			echo json_encode($ret_str);
+		}else{
+			die("Virhe!");
 		}
-		echo json_encode($ret_str);
 	}
 	
 	function controller_add_column($table_name, $column_name, $column_type){
@@ -371,6 +388,8 @@ class Controller{
 			$columnObj->column_type=$column_type;
 			$this->db->db_add_column($columnObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -381,6 +400,8 @@ class Controller{
 			$tableObj->table_name=$table_name;
 			$this->db->db_change_table_name($tableObj, $new_table_name);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -399,7 +420,9 @@ class Controller{
 
 			$this->db->db_change_column_name($column_old, $column_new);
 			echo 'Toiminto suoritettu onnistuneesti!';
-		}	
+		}else{
+			die("Virhe!");
+		}
 	}
 	
 	function controller_destroy_column($table_name, $column_name){
@@ -409,6 +432,8 @@ class Controller{
 			$columnObj->column_name=$column_name;
 			$this->db->db_destroy_column($columnObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -418,6 +443,8 @@ class Controller{
 			$tableObj->table_name=$table_name;
 			$this->db->db_destroy_table($tableObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -448,6 +475,8 @@ class Controller{
 
 			$this->db->db_change_layout_name($layout_old, $layout_new);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -461,6 +490,8 @@ class Controller{
 
 			$this->db->db_change_layout_sql($layout_old, $layout_new);
 			echo 'Toiminto suoritettu onnistuneesti!';	
+		}else{
+			die("Virhe!");
 		}
 	}
 	
@@ -470,6 +501,8 @@ class Controller{
 			$layoutObj->name=$layout_name;
 			$this->db->db_destroy_layout($layoutObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	
 	}
@@ -501,12 +534,16 @@ class Controller{
 			$res=array($search_results->resultsArr, $columnto);
 
 			echo json_encode($res);
-		}	
+		}	else{
+			die("Virhe!");
+		}
 	}
 
 	function controller_add_user($username, $password1, $password2){
 		if($username!=NULL && $password1!=NULL && $password2!=NULL){
 			if(strcmp($password1, $password2) == 0){
+				$username = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($username))))));
+				$password1 = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($password1))))));
 				$userObj=new User;
 				$userObj->username=$username;
 				$crypted_arr=$this->hash->crypt_password($password1);
@@ -515,6 +552,8 @@ class Controller{
 				$this->db->db_create_user($userObj);
 				echo 'Toiminto suoritettu onnistuneesti!';
 			}
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -547,6 +586,8 @@ class Controller{
 			}
 		
 			echo json_encode($ret_str);
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -578,6 +619,8 @@ class Controller{
 			}
 		
 			return $ret_str;
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -592,6 +635,8 @@ class Controller{
 			$userObj->user_id=$user_id;
 			$this->db->db_read_rights($layoutObj, $userObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -606,6 +651,8 @@ class Controller{
 			$userObj->user_id=$user_id;
 			$this->db->db_write_rights($layoutObj, $userObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -620,6 +667,8 @@ class Controller{
 			$userObj->user_id=$user_id;
 			$this->db->db_notvisible_rights($layoutObj, $userObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -629,6 +678,8 @@ class Controller{
 			$userObj->user_id=$user_id;
 			$this->db->db_make_admin($userObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 
@@ -638,6 +689,8 @@ class Controller{
 			$userObj->user_id=$user_id;
 			$this->db->db_destroy_user($userObj);
 			echo 'Toiminto suoritettu onnistuneesti!';
+		}else{
+			die("Virhe!");
 		}
 	}
 

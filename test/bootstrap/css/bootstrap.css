@@ -2248,9 +2248,7 @@ fieldset[disabled] .btn {
 }
 
 .btn-default {
-  color: #333333;
-  background-color: #ffffff;
-  border-color: #cccccc;
+ background-color: hsl(360, 0%, 92%) !important; background-repeat: repeat-x; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff", endColorstr="#eaeaea"); background-image: -khtml-gradient(linear, left top, left bottom, from(#ffffff), to(#eaeaea)); background-image: -moz-linear-gradient(top, #ffffff, #eaeaea); background-image: -ms-linear-gradient(top, #ffffff, #eaeaea); background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #ffffff), color-stop(100%, #eaeaea)); background-image: -webkit-linear-gradient(top, #ffffff, #eaeaea); background-image: -o-linear-gradient(top, #ffffff, #eaeaea); background-image: linear-gradient(#ffffff, #eaeaea); border-color: #eaeaea #eaeaea hsl(360, 0%, 90%); color: #333 !important; text-shadow: 0 1px 1px rgba(255, 255, 255, 0.13); -webkit-font-smoothing: antialiased;
 }
 
 .btn-default:hover,

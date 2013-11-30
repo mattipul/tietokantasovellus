@@ -148,7 +148,7 @@ class Xml{
 
 		foreach ($div->area as $area) {
 			$area_style = $area['style'];
-			$html=$html."<textarea data-insid='".$i."' class='insert_entry_".$area['column']."' type='text' style='".$area_style."'></textarea>";	
+			$html=$html."<div><span>".$area['caption']."</span><textarea data-insid='".$i."' class='insert_entry_".$area['column']."' type='text' style='".$area_style."'></textarea></div>";	
 			
 		}
 
@@ -160,7 +160,7 @@ class Xml{
 
 		foreach ($div->entry as $entry) {
 			$entry_style = $entry['style'];
-			$html=$html."<input data-insid='".$i."' class='insert_entry_".$entry['column']."' type='text' style='".$entry_style."'/>";	
+			$html=$html."<div><span>".$entry['caption']."</span><input data-insid='".$i."' class='insert_entry_".$entry['column']."' type='text' style='".$entry_style."'/></div>";	
 			
 		}
 

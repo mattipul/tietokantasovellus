@@ -38,19 +38,19 @@ class Database{
 	}
 
 	function db_exec($sqlstatement){
-		//try {
+		try {
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		if($mysqlquery->execute() == FALSE){
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_select($sqlstatement){
-		//try{
+		try{
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		$ret=$mysqlquery->execute();
@@ -59,25 +59,25 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_exec_esc($sqlstatement, $hide_array){
-		//try{
+		try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 			$ret=$mysqlquery->execute($hide_array);
 	  		if($ret == FALSE){
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 	
 	function db_select_esc($sqlstatement, $hide_array){
-		//try{
+		try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 	  		$ret=$mysqlquery->execute($hide_array);
 			if($ret==TRUE){		
@@ -85,9 +85,9 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_close_connection(){
@@ -102,6 +102,8 @@ class Database{
 		$columns_sql = "";
 		for($i=0; $i<count($table_columns); $i++){
 			$column=explode(":", $table_columns[$i]);
+			$column[0] = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($column[0]))))));
+			$column[1] = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($column[1]))))));
 			$columns_sql=$columns_sql.$column[0]." ".$column[1];
 			if( $i<count($table_columns)-1 ){
 				$columns_sql=$columns_sql.",";
@@ -121,6 +123,8 @@ class Database{
 		$table_columns_sql_string="";
 		for($i=0; $i<count($table_columns); $i++){
 			$column=explode(":", $table_columns[$i]);
+			$column[0] = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($column[0]))))));
+			$column[1] = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($column[1]))))));
 			$column_name=$column[0];
 			$column_type=$column[1];
 			$columns_sql=$columns_sql.$column[0]." ".$column[1];
@@ -341,6 +345,17 @@ class Database{
 	
 	}
 
+	function db_check_column_if_float($table, $column_name){
+		$hide_array=array(":column_name"=>$column_name);
+		$ret_object=$this->db_select_esc("SHOW COLUMNS FROM ".$table->table_name." LIKE :column_name", $hide_array);		
+		if( strstr($ret_objet[0]['type'], "double")!=FALSE ){
+			return 1;
+		}else{
+			return 0;
+		}
+	
+	}
+
 //INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)VALMIS
 
 
@@ -357,6 +372,9 @@ class Database{
 			
 			if($this->db_check_column_if_int($table, $row->row_keys[$i]) == 1){
 				$row->row_keys[$i]=intval($row->row_keys[$i]);
+			}
+			if($this->db_check_column_if_float($table, $row->row_keys[$i]) == 1){
+				$row->row_keys[$i]=floatval($row->row_keys[$i]);
 			}
 			$hide_array[':data'.$i]=$row->row_data[$i];
 			$update_str=$update_str.$row->row_keys[$i]."=:data".$i." ";
@@ -488,7 +506,7 @@ class Database{
 			$hide_array[':data'.$i]=$ret_data[1][$i];
 			$search_str=$search_str.$ret_data[0][$i]." LIKE :data".$i." ";
 			if( $i<count($ret_data[0])-1 ){
-				$search_str=$search_str."AND";
+				$search_str=$search_str." AND ";
 			}
 		}
 		$ret_object=$this->db_select_esc( $search_str,$hide_array );

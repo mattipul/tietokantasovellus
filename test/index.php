@@ -58,9 +58,12 @@ $admin=$project->project_is_admin($_SESSION['id']);
     <![endif]-->
   </head>
 
+  <div id="peitto">
+  </div>
+  
   <body onload="do_on_load();">
 
-	    <div class="navbar navbar-inverse navbar-fixed-top" style="height:30px">
+	    <div class="navbar navbar-inverse navbar-fixed-top" style="height:30px;z-index:1">
 	      <div class="container" s>
 		<div class="navbar-header" >
 		  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" >
