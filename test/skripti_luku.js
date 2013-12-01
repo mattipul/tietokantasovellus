@@ -28,7 +28,7 @@ function fullscreen(id){
 		$('#xml-area-yllapito'+current_layout_id).height( height_layout-60 );
 		$('#arkisto'+current_layout_id).height( height_layout- 60 );
 		$('#yllapito'+current_layout_id).height( height_layout - 60);
-		$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-60 );
+		$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
 		is_fullscreen=1;
 	}else{
 		$("#peitto").hide();
@@ -57,7 +57,7 @@ window.onresize = function(event) {
 			$('#xml-area-yllapito'+current_layout_id).height( height_layout-60 );
 			$('#arkisto'+current_layout_id).height( height_layout- 60 );
 			$('#yllapito'+current_layout_id).height( height_layout - 60);
-			$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-60 );
+			$("#"+current_layout_id+'tabcontent').height( $('#yllapito'+current_layout_id).height()-40 );
 		}
 }
 

@@ -1,5 +1,8 @@
 <?php
 
+//HUOMAA DOKUMENTAATION 11. osio
+//YLLÄPITOMETODIT EIVÄT TARKOITUKSENMUKAISESTI SISÄLLÄ INJEKTIOSUOJAA
+
 ini_set('display_errors',1); 
 error_reporting(E_ALL);
 

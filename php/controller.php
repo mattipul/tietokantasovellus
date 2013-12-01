@@ -13,6 +13,7 @@ require_once("column.php");
 require_once("search_results.php");
 require_once("permission.php");
 require_once("hash.php");
+require_once("settings_db.php");
 
 class Controller{
 
@@ -22,29 +23,32 @@ class Controller{
 	public $permission;
 
 	function init(){
+		global $settings_db_name;
+		global $settings_db_user;
+		global $settings_db_password;
 		$this->db=new Database;
-		$this->db->db_set_name("tietokanta");
-		$this->db->db_create_connection("sovellus", "ietokantawi0Bieyo");
+		$this->db->db_set_name($settings_db_name);
+		$this->db->db_create_connection($settings_db_user, $settings_db_password);
 
 		$this->xml=new Xml;
 		$this->hash=new Hash;
 		$this->permission=new Permission;
 	}
 
-
+	//Onko istunto päällä?
 	function check_user_session(){
 		if (session_id() == '') {
 			session_start();
 		}
 		if( empty( $_SESSION['id'] ) ){
-			die("pöö");
+			die("Virhe!");
 		}
 	}
 
 	function is_admin(){
 
 		if($this->admin($_SESSION['id'])!=1){
-			die("pööas");
+			die("Virhe!");
 		}
 	}
 
@@ -70,6 +74,7 @@ class Controller{
 		}
 	}
 
+	//Palauttaa 1, jos käyttäjä on ylläpitäjä
 	function admin($user_id){
 		$userObj=new User;
 		$userObj->user_id=$user_id;
@@ -104,6 +109,7 @@ class Controller{
 		}
 	}
 	
+	//Parsitaan XML, ja palautetaan HTML:ää selaimelle
 	function print_layout_html_arr( $layout_id, $row){
 		$layout_ret=$this->db->db_get_layout($layout_id);	
 		$layout=(object)$layout_ret;
@@ -115,11 +121,13 @@ class Controller{
 		return $html;
 	}
 
+	//Palautetaan asetelma JSON-merkkijonoon
 	function print_xml_arr($layout_id){
 		$layout=$this->db->db_get_layout($layout_id);
 		return $layout;
 	}
 	
+	//Palautetaan rividata JSON-merkkijonoon
 	function print_row_arr($row){
 		$keys=$row->row_keys;
 		$data=$row->row_data;
@@ -591,6 +599,7 @@ class Controller{
 		}
 	}
 
+	//Palautetaan asetelmalistaus käyttöoikeuksilla
 	function controller_get_layout_list_permission_nojson($user_id){
 		if( $user_id!=NULL ){
 			$userObj=new User;
@@ -624,6 +633,7 @@ class Controller{
 		}
 	}
 
+	//Asetetaan käyttäjälle lukuoikeudet
 	function controller_read_rights($layout_id, $user_id){
 		if( $layout_id!=NULL && $user_id!=NULL ){
 			if($this->admin($user_id)==1){

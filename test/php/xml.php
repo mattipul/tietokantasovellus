@@ -4,6 +4,8 @@ ini_set('display_errors',1);
 error_reporting(E_ALL);
 
 require_once("db.php");
+require_once("settings_db.php");
+
 
 class Xml{
 
@@ -11,10 +13,14 @@ class Xml{
 	public $xml_parsed_browse;
 	public $xml_parsed_insert;
 
+
 	function init_db(){
+		global $settings_db_name;
+		global $settings_db_user;
+		global $settings_db_password;
 		$this->db=new Database;
-		$this->db->db_set_name("tietokanta");
-		$this->db->db_create_connection("sovellus", "ietokantawi0Bieyo");
+		$this->db->db_set_name($settings_db_name);
+		$this->db->db_create_connection($settings_db_user, $settings_db_password);
 	}
 
 	function xml_parse_browse($xmlstr){
@@ -118,7 +124,7 @@ class Xml{
 		return $html;
 	}
 
-
+	
 	function xml_create_div_element_browse(){
 		$browse_html="";
 		foreach ($this->xml_parsed_browse->visuals->section as $div) {
@@ -133,6 +139,7 @@ class Xml{
 		return $browse_html;	
 	}
 
+	//Luodaan arkiston HTML-merkkijono parsitusta XML-datasta
 	function print_divs_browse(){
 		$browse_html = $this->xml_create_div_element_browse();
 		return $browse_html;
@@ -337,6 +344,7 @@ class Xml{
 		return $name_str;
 	}
 
+	//Luodaan ylläpidon HTML-merkkijono parsitusta XML-datasta
 	function print_divs_insert($row){
 		$arr = $this->xml_create_tables($row);
 		return $arr;

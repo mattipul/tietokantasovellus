@@ -2,15 +2,21 @@
 
 require_once("db.php");
 require_once("user.php");
+require_once("settings_db.php");
+
 
 class Login{
 
 	private $db;
+
 	
 	function login_init(){
+		global $settings_db_name;
+		global $settings_db_user;
+		global $settings_db_password;
 		$this->db=new Database;
-		$this->db->db_set_name("tietokanta");
-		$this->db->db_create_connection("sovellus", "ietokantawi0Bieyo");
+		$this->db->db_set_name($settings_db_name);
+		$this->db->db_create_connection($settings_db_user, $settings_db_password);
 	}
 
 	function login_authorize($user, $pass){

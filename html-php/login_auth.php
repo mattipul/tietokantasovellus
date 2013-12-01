@@ -67,6 +67,7 @@ else{
 	var pass_str=$("#pass").val();
 	$.post( "php/handle_post.php", { type:8, user:user_str, pass:pass_str})
 	.done(function(data ) {
+
 		if(data==1){
 			window.location = "index.php";
 		}else{
