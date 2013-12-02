@@ -53,32 +53,38 @@ class Controller{
 	}
 
 	function has_read_rights($layout_id){
-		$userObj=new User;
-		$userObj->user_id=$_SESSION['id'];
-		$layotObj=new Layout;
-		$layoutObj->id=$layout_id;
-		$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
-		if( $this->admin($_SESSION['id'])!=1 && $retperm!=1 && $retperm!=2){
-			die($retperm);
+		if($layout_id!=NULL){
+			$userObj=new User;
+			$userObj->user_id=$_SESSION['id'];
+			$layotObj=new Layout;
+			$layoutObj->id=$layout_id;
+			$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
+			if( $this->admin($_SESSION['id'])!=1 && $retperm!=1 && $retperm!=2){
+				die($retperm);
+			}
 		}
 	}
 
 	function has_write_rights($layout_id){
-		$userObj=new User;
-		$userObj->user_id=$_SESSION['id'];
-		$layotObj=new Layout;
-		$layoutObj->id=$layout_id;
-		$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
-		if($this->admin($_SESSION['id'])!=1 && $retperm!=1){
-			die($retperm);
+		if($layout_id!=NULL){
+			$userObj=new User;
+			$userObj->user_id=$_SESSION['id'];
+			$layotObj=new Layout;
+			$layoutObj->id=$layout_id;
+			$retperm=$this->permission->permission_check_layout_permissions($this->db, $layoutObj, $userObj);
+			if($this->admin($_SESSION['id'])!=1 && $retperm!=1){
+				die($retperm);
+			}
 		}
 	}
 
 	//Palauttaa 1, jos käyttäjä on ylläpitäjä
 	function admin($user_id){
-		$userObj=new User;
-		$userObj->user_id=$user_id;
-		return $this->permission->permission_is_admin($this->db, $userObj);
+		if($user_id!=NULL){
+			$userObj=new User;
+			$userObj->user_id=$user_id;
+			return $this->permission->permission_is_admin($this->db, $userObj);
+		}
 	}
 	
 	function controller_check_layout_name($layout_name){
@@ -153,13 +159,13 @@ class Controller{
 					$json_return[]=$this->print_row_arr($rowObj);
 					echo json_encode($json_return);
 				}else{
-					echo '0';
+					echo 'Virhe!';
 				}
 			}else{
-				echo '0';
+				echo 'Virhe!';
 			}
 		}else{
-			echo '0';
+			echo 'Virhe!';
 		}
 		
 	}
@@ -179,10 +185,10 @@ class Controller{
 					$json_return[]=$this->print_row_arr($rowObj);
 					echo json_encode($json_return);
 				}else{
-					echo '0';
+					echo 'Virhe!';
 				}
 			}else{
-				echo '0';
+				echo 'Virhe!';
 			}
 		}else{
 			die("Virhe!");
@@ -190,18 +196,17 @@ class Controller{
 	
 	}
 	
-	function controller_refresh($layout_id, $layout_name, $layout_sqlstatement, $xml_browse, $xml_insert, $row){
+	function controller_refresh($layout_id, $xml_browse, $xml_insert, $row){
 	
-		if( $layout_id!=NULL && $layout_name!=NULL && $layout_sqlstatement!=NULL && $xml_browse!=NULL && $xml_insert!=NULL && $row!=NULL ){
+		if( $layout_id!=NULL && $xml_browse!=NULL && $xml_insert!=NULL && $row!=NULL ){
 			if( $layout_id >= 1 && $row >= 1 ){
 				$layout=new Layout;
 				$layout->id=$layout_id;
-				$layout->name=$layout_name;
-				$layout->sqlstatement=$layout_sqlstatement;
 				$layout->xml_browse=$xml_browse;
 				$layout->xml_insert=$xml_insert;
 				
 				$this->db->db_set_layout($layout);
+				$layout=$this->db->db_get_layout($layout_id);
 				$json_return[]=$this->print_layout_html_arr($layout_id, $row);
 				$json_return[]=$this->print_xml_arr($layout_id);
 				$rowObj=$this->db->db_get_row($row, $layout->sqlstatement);
@@ -403,6 +408,7 @@ class Controller{
 	
 	function controller_change_table_name($table_name, $new_table_name){
 		if( $table_name!=NULL && $new_table_name!=NULL ){
+			$new_table_name = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($new_table_name))))));
 			$this->controller_check_table_name($new_table_name);
 			$tableObj=new Table;
 			$tableObj->table_name=$table_name;
@@ -415,6 +421,7 @@ class Controller{
 	
 	function controller_change_column_name($table_name, $column_name, $new_column_name, $new_column_type){
 		if( $table_name!=NULL && $column_name!=NULL && $new_column_name!=NULL && $new_column_type!=NULL ){
+			$new_column_name = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($new_column_name))))));
 			$this->controller_check_column_name($table_name, $new_column_name);
 			$column_old=new Column;
 			$column_new=new Column;
@@ -474,6 +481,7 @@ class Controller{
 	
 	function controller_change_layout_name($layout_name, $new_layout_name){
 		if( $layout_name!=NULL && $new_layout_name!=NULL ){
+			$new_layout_name = trim(preg_replace('/ +/', '', preg_replace('/[^A-Za-z0-9 ]/', '', urldecode(html_entity_decode(strip_tags($new_layout_name))))));
 			$this->controller_check_layout_name($new_layout_name);
 			$layout_old=new Layout;
 			$layout_new=new Layout;
@@ -559,6 +567,8 @@ class Controller{
 				$userObj->salt=$crypted_arr[1];
 				$this->db->db_create_user($userObj);
 				echo 'Toiminto suoritettu onnistuneesti!';
+			}else{
+				die("Virhe!");			
 			}
 		}else{
 			die("Virhe!");

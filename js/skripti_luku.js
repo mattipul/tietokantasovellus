@@ -205,7 +205,7 @@ function set_column_data(layout_id, data){
 	var keys=Object.keys(data);
 	while(a_node!==undefined){
 		
-		$("."+keys[laskuri]).each(function( index ) {
+		$(".record_"+keys[laskuri]).each(function( index ) {
 			if($(this).is("img")){
 				$(this).attr("src", a_node);
 			}else{

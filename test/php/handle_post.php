@@ -39,10 +39,8 @@ class Handle_post{
 				$xml_browse = $_POST['xml_browse'];
 				$xml_insert = $_POST['xml_insert'];
 				$layout_id = $_POST['layout_id'];
-				$layout_name = $_POST['layout_name'];
-				$layout_sqlstatement =$_POST['layout_sqlstatement'];
 				$row = $_POST['row'];
-				$this->controller->controller_refresh($layout_id, $layout_name, $layout_sqlstatement, $xml_browse, $xml_insert, $row);
+				$this->controller->controller_refresh($layout_id, $xml_browse, $xml_insert, $row);
 			}
 	
 

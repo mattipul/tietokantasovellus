@@ -50,7 +50,7 @@ class Xml{
 				$ret=$ret."<span>".$string."</span>";
 			}
 			if($data!=NULL){
-				$ret=$ret."<span class='".$data."'></span>";
+				$ret=$ret."<span class='record_".$data."'></span>";
 			}
 			$string=$text->string[$laskuri];
 			$data=$text->data[$laskuri];
@@ -79,7 +79,7 @@ class Xml{
 			if( strlen( $image['column']) == 0 ){
 				$html=$html."<img style='".$image_style."' src='".$image."'/>";		
 			}else{
-				$html=$html."<img class='".$image['column']."' style='".$image_style."' src=''/>";	
+				$html=$html."<img class='record_".$image['column']."' style='".$image_style."' src=''/>";	
 			}	
 		}
 

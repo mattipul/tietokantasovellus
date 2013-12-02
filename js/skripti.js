@@ -181,12 +181,9 @@ function avaa_valilehti(index, nmn){
 
 function refresh(){
 
-	$.post( "php/handle_post.php", { type:2, row: current_row_id, layout_id: current_layout_id, xml_browse: $('#xml-area-arkisto'+current_layout_id).val(), xml_insert:$('#xml-area-yllapito'+current_layout_id).val(), layout_name:current_layout.name, layout_sqlstatement:current_layout.sqlstatement })
+	$.post( "php/handle_post.php", { type:2, row: current_row_id, layout_id: current_layout_id, xml_browse: $('#xml-area-arkisto'+current_layout_id).val(), xml_insert:$('#xml-area-yllapito'+current_layout_id).val() })
 	.done(function(data ) {
-
 		var asetelma = jQuery.parseJSON( data );
-		current_layout.name=asetelma[1].name;
-		current_layout.sqlstatement=asetelma[1].sqlstatement;
 		set_xml_browse_data(current_layout_id, asetelma[1].xml_browse);
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
@@ -203,8 +200,6 @@ function next(){
 	.done(function(data ) {
 
 		var asetelma = jQuery.parseJSON( data );	
-		current_layout.name=asetelma[1].name;
-		current_layout.sqlstatement=asetelma[1].sqlstatement;
 		set_xml_browse_data(current_layout_id, asetelma[1].xml_browse);
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
@@ -224,8 +219,6 @@ function previous(){
 	.done(function(data ) {
 
 		var asetelma = jQuery.parseJSON( data );
-		current_layout.name=asetelma[1].name;
-		current_layout.sqlstatement=asetelma[1].sqlstatement;
 		set_xml_browse_data(current_layout_id, asetelma[1].xml_browse);
 		set_xml_insert_data(current_layout_id, asetelma[1].xml_insert);
 		set_html_browse(current_layout_id, asetelma[0].browse_html);
@@ -296,7 +289,7 @@ function set_column_data(layout_id, data){
 	var keys=Object.keys(data);
 	while(a_node!==undefined){
 		
-		$("."+keys[laskuri]).each(function( index ) {
+		$(".record_"+keys[laskuri]).each(function( index ) {
 			if($(this).is("img")){
 				$(this).attr("src", a_node);
 			}else{
@@ -581,6 +574,7 @@ function add_user(){
 }
 
 function get_users(list){
+	$("#asetelmien_nimet_kayttaja").html("");
 	$(list).html("<option></option>");
 	$.post( "php/handle_post.php", { type:23})
 	.done(function(data ) {
@@ -606,16 +600,16 @@ function get_layout_list_tolist(id){
 				if(layouts[i] !== undefined){
 					var class_perm;					
 					if(layouts[i].permission===undefined ||( layouts[i].admin!=1 && layouts[i].permission==-1 )){
-						class_perm="Piilotettu";
+						class_perm="+h";
 					}
 					if(layouts[i].admin==1){
-						class_perm="Ylläpitäjä";
+						class_perm="+a";
 					}
 					if(layouts[i].permission==1){
-						class_perm="Kirjoitusoikeudet";
+						class_perm="+w";
 					}
 					if(layouts[i].permission==2){
-						class_perm="Lukuoikeudet";
+						class_perm="+r";
 					}
 					$(id).html( $(id).html() + "<option value='"+layouts[i].layout_id+"'>"+layouts[i].layout_name+"("+class_perm+")</option>" );
 				}

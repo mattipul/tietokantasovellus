@@ -41,19 +41,19 @@ class Database{
 	}
 
 	function db_exec($sqlstatement){
-		try {
+		//try {
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		if($mysqlquery->execute() == FALSE){
-				die("Virhe!");
+				die("Virhef!");
 			}
-		}catch(Exception $e){
-			die("Virhe!");
-		}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_select($sqlstatement){
-		try{
+		//try{
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		$ret=$mysqlquery->execute();
@@ -62,25 +62,25 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		}catch(Exception $e){
-			die("Virhe!");
-		}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_exec_esc($sqlstatement, $hide_array){
-		try{
+		//try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 			$ret=$mysqlquery->execute($hide_array);
 	  		if($ret == FALSE){
 				die("Virhe!");
 			}
-		}catch(Exception $e){
-			die("Virhe!");
-		}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 	
 	function db_select_esc($sqlstatement, $hide_array){
-		try{
+		//try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 	  		$ret=$mysqlquery->execute($hide_array);
 			if($ret==TRUE){		
@@ -88,9 +88,9 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		}catch(Exception $e){
-			die("Virhe!");
-		}
+		//}catch(Exception $e){
+		//	die("Virhe!");
+		//}
 	}
 
 	function db_close_connection(){
@@ -147,13 +147,15 @@ class Database{
 		$layout_sql = $layout->sqlstatement;
 		$layout_xml_insert="<?xml version=\"1.0\"?>\n<managelayout>\n</managelayout>";
 		$layout_xml_browse="<?xml version=\"1.0\"?>\n<layout>\n<visuals>\n</visuals>\n</layout>";
-		return $this->db_exec("INSERT INTO Asetelma (asetelman_id, asetelman_nimi, sqllauseke, xml_yllapito, xml_arkisto) VALUES(NULL, '".$layout_name."', '".$layout_sql."', '".$layout_xml_insert."', '".$layout_xml_browse."')");
+		$hide_array=array(":layout_name"=>$layout_name, ":layout_sql"=>$layout_sql, ":layout_xml_insert"=>$layout_xml_insert, ":layout_xml_browse"=>$layout_xml_browse);
+		$this->db_exec_esc("INSERT INTO Asetelma (asetelman_id, asetelman_nimi, sqllauseke, xml_yllapito, xml_arkisto) VALUES(NULL, :layout_name, :layout_sql, :layout_xml_insert, :layout_xml_browse)", $hide_array);
 
 		
 	}
 	
 	function db_get_table_columns($id){
-		$ret_object = $this->db_select("SELECT * FROM Sarake WHERE taulun_id=".$id);
+		$hide_array=array(":id"=>$id);
+		$ret_object = $this->db_select_esc("SELECT * FROM Sarake WHERE taulun_id=:id", $hide_array);
 		$column_list=array();		
 
 		foreach ($ret_object as $column)
@@ -178,7 +180,8 @@ class Database{
 	}
 	
 	function db_get_table_columns_by_name($name){
-		$ret_object = $this->db_select("SELECT * FROM Sarake WHERE taulun_nimi=".$name);
+		$hide_array=array(":name"=>$name);
+		$ret_object = $this->db_select_esc("SELECT * FROM Sarake WHERE taulun_nimi=:name", $hide_array);
 		$column_list=array();		
 
 		foreach ($ret_object as $column)
@@ -282,11 +285,10 @@ class Database{
 
 	function db_set_layout($layout){
 		$layout_id=$layout->id;
-		$layout_name=$layout->name;
 		$layout_xml_browse=$layout->xml_browse;
 		$layout_xml_insert=$layout->xml_insert;
-		$sqlstatement=$layout->sqlstatement;
-		$this->db_exec( "UPDATE Asetelma SET asetelman_nimi='".$layout_name."', sqllauseke='".$sqlstatement."', xml_arkisto='".$layout_xml_browse."', xml_yllapito='".$layout_xml_insert."' WHERE asetelman_id='".$layout_id."'" );
+		$hide_array=array(":layout_xml_browse"=>$layout_xml_browse, ":layout_xml_insert"=>$layout_xml_insert, ":layout_id"=>$layout_id);
+		$this->db_exec_esc( "UPDATE Asetelma SET xml_arkisto=:layout_xml_browse, xml_yllapito=:layout_xml_insert WHERE asetelman_id=:layout_id", $hide_array );
 
 	}
 
@@ -379,6 +381,7 @@ class Database{
 			if($this->db_check_column_if_float($table, $row->row_keys[$i]) == 1){
 				$row->row_keys[$i]=floatval($row->row_keys[$i]);
 			}
+			$row->row_keys[$i]=htmlentities($row->row_keys[$i], ENT_QUOTES, "UTF-8");
 			$hide_array[':data'.$i]=$row->row_data[$i];
 			$update_str=$update_str.$row->row_keys[$i]."=:data".$i." ";
 			if( $i < count( $row->row_keys )-1 ){
@@ -487,15 +490,18 @@ class Database{
 	}
 
 	function db_change_layout_name($layout, $new_layout){
-		$this->db_exec('UPDATE Asetelma SET asetelman_nimi="'.$new_layout->name.'" WHERE asetelman_nimi="'.$layout->name.'"');
+		$hide_array=array(":name"=>$new_layout->name, ":name_old"=>$layout->name);
+		$this->db_exec_esc('UPDATE Asetelma SET asetelman_nimi=:name WHERE asetelman_nimi=:name_old', $hide_array);
 	}
 
 	function db_change_layout_sql($layout, $new_layout){
-		$this->db_exec('UPDATE Asetelma SET sqllauseke="'.$new_layout->sqlstatement.'" WHERE asetelman_nimi="'.$layout->name.'"');
+		$hide_array=array(":sqlstatement"=>$new_layout->sqlstatement, ":name"=>$layout->name);
+		$this->db_exec_esc('UPDATE Asetelma SET sqllauseke=:sqlstatement WHERE asetelman_nimi=:name', $hide_array);
 	}
 
 	function db_destroy_layout($layout){
-		$this->db_exec("DELETE FROM Asetelma WHERE asetelman_nimi='".$layout->name."'");
+		$hide_array=array(":name"=>$layout->name);
+		$this->db_exec_esc("DELETE FROM Asetelma WHERE asetelman_nimi=:name", $hide_array);
 	}
 
 //INJEKTIOSUOJA(TARKISTA SARAKKEIDEN OLEMASSAOLO)(SQL POIS JS:N PUOLELTA)
@@ -520,19 +526,23 @@ class Database{
 	}
 	
 	function db_check_same_name_layout($layout){
-		$ret_object=$this->db_select("SELECT * FROM Asetelma WHERE asetelman_nimi='".$layout->name."'");
+		$hide_array=array(":name"=>$layout->name);
+		$ret_object=$this->db_select_esc("SELECT * FROM Asetelma WHERE asetelman_nimi=:name", $hide_array);
 		return count($ret_object);
 	}
 	
 	function db_check_same_name_table($table){
-		$ret_object=$this->db_select("SELECT * FROM Taulu WHERE taulun_nimi='".$table->table_name."'");
+		$hide_array=array(":table_name"=>$table->table_name);
+		$ret_object=$this->db_select_esc("SELECT * FROM Taulu WHERE taulun_nimi=:table_name", $hide_array);
 		return count($ret_object);
 	}
 	
 	function db_check_same_name_column($column){
-		$ret_object = $this->db_select("SELECT taulun_id FROM Taulu WHERE taulun_nimi='".$column->table_name."'");
+		$hide_array=array(":table_name"=>$column->table_name);
+		$ret_object = $this->db_select_esc("SELECT taulun_id FROM Taulu WHERE taulun_nimi=:table_name", $hide_array);
 		$table_id=$ret_object[0]['taulun_id'];
-		$ret_object=$this->db_select("SELECT * FROM Sarake WHERE taulun_id='".$table_id."' AND sarakkeen_nimi='".$column->column_name."'");
+		$hide_array=array(":table_id"=>$table_id, ":column_name"=>$column->column_name);
+		$ret_object=$this->db_select_esc("SELECT * FROM Sarake WHERE taulun_id=:table_id AND sarakkeen_nimi=:column_name", $hide_array);
 		return count($ret_object);
 	}
 
@@ -557,18 +567,19 @@ class Database{
 	}
 
 	function db_set_layout_permission($layout, $user, $permission){
-		//$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout_id);
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES (NULL, '".$user->user_id."', '1', '".$layout->id."', '".$permission."')");
+		$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout_id, ":permission"=>$permission);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES (NULL, :user_id, '1', :layout_id, :permission)", $hide_array);
 	}
 
 	function db_set_admin($user){
-		//$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout_id);
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES (NULL, '".$user->user_id."', '-1', '-1', '0')");
+		$hide_array=array(":user_id"=>$user->user_id);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES (NULL, :user_id, '-1', '-1', '0')", $hide_array);
 	}
 	
 	function db_create_user($user){
 		//echo "INSERT INTO Kayttaja (kayttaja_id, kayttajanimi, tiiviste, suola) VALUES ( NULL, '".$user->username."', '".$user->hash."', '".$user->salt."' )";
-		$this->db_exec("INSERT INTO Kayttaja (kayttaja_id, kayttajanimi, tiiviste, suola) VALUES ( NULL, '".$user->username."', '".$user->hash."', '".$user->salt."' )");
+		$hide_array=array(":username"=>$user->username, ":hash"=>$user->hash, ":salt"=>$user->salt);
+		$this->db_exec_esc("INSERT INTO Kayttaja (kayttaja_id, kayttajanimi, tiiviste, suola) VALUES ( NULL, :username, :hash, :salt )", $hide_array);
 	}
 
 	function db_get_users(){
@@ -592,23 +603,28 @@ class Database{
 	}
 
 	function db_read_rights($layout, $user){
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, '".$user->user_id."', '1', '".$layout->id."', '2' )");
+		$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout->id);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, :user_id, '1', :layout_id, '2' )", $hide_array);
 	}
 
 	function db_write_rights($layout, $user){
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, '".$user->user_id."', '1', '".$layout->id."', '1' )");
+		$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout->id);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, :user_id, '1', :layout_id, '1' )", $hide_array);
 	}
 
 	function db_notvisible_rights($layout, $user){
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, '".$user->user_id."', '1', '".$layout->id."', '-1' )");
+		$hide_array=array(":user_id"=>$user->user_id, ":layout_id"=>$layout->id);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, :user_id, '1', :layout_id, '-1' )", $hide_array);
 	}
 
 	function db_make_admin($user){
-		$this->db_exec("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, '".$user->user_id."', '-1', '-1', '0' )");
+		$hide_array=array(":user_id"=>$user->user_id);
+		$this->db_exec_esc("INSERT INTO Oikeudet (oikeus_id, kayttaja_id, tyyppi, kohde, oikeus) VALUES ( NULL, :user_id, '-1', '-1', '0' )", $hide_array);
 	}
 
 	function db_destroy_user($user){
-		$this->db_exec("DELETE FROM Kayttaja WHERE kayttaja_id=".$user->user_id);
+		$hide_array=array(":user_id"=>$user->user_id);
+		$this->db_exec_esc("DELETE FROM Kayttaja WHERE kayttaja_id=:user_id", $hide_array);
 	}
 
 }
