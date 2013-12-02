@@ -41,19 +41,19 @@ class Database{
 	}
 
 	function db_exec($sqlstatement){
-		//try {
+		try {
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		if($mysqlquery->execute() == FALSE){
 				die("Virhef!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_select($sqlstatement){
-		//try{
+		try{
 			$sqlstatement_escaped=$this->db_escape($sqlstatement);
 			$mysqlquery = $this->database->prepare($sqlstatement_escaped);
 	  		$ret=$mysqlquery->execute();
@@ -62,25 +62,25 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_exec_esc($sqlstatement, $hide_array){
-		//try{
+		try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 			$ret=$mysqlquery->execute($hide_array);
 	  		if($ret == FALSE){
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 	
 	function db_select_esc($sqlstatement, $hide_array){
-		//try{
+		try{
 			$mysqlquery = $this->database->prepare($sqlstatement);
 	  		$ret=$mysqlquery->execute($hide_array);
 			if($ret==TRUE){		
@@ -88,9 +88,9 @@ class Database{
 			}else{
 				die("Virhe!");
 			}
-		//}catch(Exception $e){
-		//	die("Virhe!");
-		//}
+		}catch(Exception $e){
+			die("Virhe!");
+		}
 	}
 
 	function db_close_connection(){
