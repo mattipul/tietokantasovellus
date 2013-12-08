@@ -50,7 +50,8 @@ else{
 
         <button class="btn btn-lg btn-primary btn-block" onclick="auth();" type="button">Kirjaudu sisään</button>
       </form>
-	  Käyttäjätunnus:admin, Salasana:admin
+	  Käyttäjätunnus:admin, Salasana:admin<br/>
+	  Käyttäjätunnus:kayttaja, Salasana:sala
 
     </div> <!-- /container -->
 
